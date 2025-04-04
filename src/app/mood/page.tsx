@@ -3,7 +3,7 @@ import MoodDisplay from "./components/MoodDisplay";
 
 // Server component to fetch data
 async function fetchMoods() {
-  const res = await fetch('http://localhost:3000/api/moods');
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/moods`);
   if (!res.ok) {
     throw new Error('Failed to fetch moods');
   }

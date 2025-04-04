@@ -15,7 +15,7 @@ export default function MoodPage() {
 
   const fetchMood = async () => {
     setLoading(true);
-    const res = await fetch('/api/moods', { cache: 'no-store' });
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/moods`, { cache: 'no-store' });
     const moods = await res.json();
     const moodData = moods.find((m: any) => m.mood === decodeURIComponent(slug));
     if (!moodData) return notFound();
