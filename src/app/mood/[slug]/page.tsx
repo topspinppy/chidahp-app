@@ -23,7 +23,7 @@ const MoodPage = () => {
   const fetchMood = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/moods`, { cache: 'no-store' });
+      const res = await fetch(`https://chidahp-app.vercel.app/api/moods`, { cache: 'no-store' });
       if (!res.ok) {
         throw new Error('Failed to fetch moods');
       }
