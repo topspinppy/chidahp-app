@@ -2,39 +2,52 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, notFound } from 'next/navigation';
+import { useRouter } from 'next/router';
 import { motion, AnimatePresence } from 'framer-motion';
 import MoodLoading from '../components/MoodLoading';
 
-export default function MoodPage() {
-  const { slug } = useParams() as { slug: string };
+const MoodPage = () => {
   const [mood, setMood] = useState<any>(null);
   const [book, setBook] = useState<any>(null);
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);
-
-  const fetchMood = async () => {
-    setLoading(true);
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/moods`, { cache: 'no-store' });
-    const moods = await res.json();
-    const moodData = moods.find((m: any) => m.mood === decodeURIComponent(slug));
-    if (!moodData) return notFound();
-
-    const random = moodData.books[Math.floor(Math.random() * moodData.books.length)];
-
-    // ⏱️ Delay แบบ Cinematic
-    setTimeout(() => {
-      setMood(moodData);
-      setBook(random);
-      setLoading(false);
-    }, 2000); // ปรับเลขได้ 1000 = 1 วิ
-  };
-
+  const router = useRouter();
+  const { slug } = router.query;
 
   useEffect(() => {
-    fetchMood();
+    if (slug) {
+      fetchMood();
+    }
   }, [slug]);
-  
+
+  const fetchMood = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/moods`, { cache: 'no-store' });
+      if (!res.ok) {
+        throw new Error('Failed to fetch moods');
+      }
+      const moods = await res.json();
+      const moodData = moods.find((m: any) => m.mood === decodeURIComponent(slug as string));
+      if (!moodData) {
+        router.push('/404'); // Redirect to a 404 page if mood not found
+        return;
+      }
+
+      const random = moodData.books[Math.floor(Math.random() * moodData.books.length)];
+
+      // ⏱️ Delay แบบ Cinematic
+      setTimeout(() => {
+        setMood(moodData);
+        setBook(random);
+        setLoading(false);
+      }, 2000); // Adjust the delay as needed
+    } catch (error) {
+      console.error('Error fetching mood:', error);
+      setLoading(false);
+      // Optionally, handle the error by showing a message or redirecting
+    }
+  };
 
   const shareUrl = `https://app.chidahp.com/mood/${mood?.mood}`;
 
@@ -147,4 +160,6 @@ export default function MoodPage() {
       </AnimatePresence>
     </div>
   );
-}
+};
+
+export default MoodPage;

@@ -1,27 +1,30 @@
-import Head from "next/head";
+// app/cardtel/page.tsx (ถ้าใช้ App Router)
+export const dynamic = 'force-dynamic'; // 👈 สำคัญ
+
 import MoodDisplay from "./components/MoodDisplay";
 
-// Server component to fetch data
+// ใช้ fetch แทน axios
 async function fetchMoods() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/moods`);
-  if (!res.ok) {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/moods`, {
+      cache: 'no-store',
+    });
+    if (!res.ok) throw new Error('Failed to fetch moods');
+    return await res.json();
+  } catch (error) {
+    console.error('Error fetching moods:', error);
     throw new Error('Failed to fetch moods');
   }
-  return res.json();
 }
 
+// Metadata แบบ App Router
+export const metadata = {
+  title: "Cardtel by ชี้ดาบ | อ่านอะไรดีตามอารมณ์",
+  description: "เลือกอารมณ์ แล้วเราจะบอกเล่มที่เหมาะกับคุณจากสำนักพิมพ์ชี้ดาบ",
+};
 
-
-// Main component to fetch data and render the client component
+// Main component
 export default async function CardTel() {
   const moods = await fetchMoods();
-  return (
-    <>
-      <Head>
-        <title>Cardtel by ชี้ดาบ | อ่านอะไรดีตามอารมณ์</title>
-        <meta name="description" content="เลือกอารมณ์ แล้วเราจะบอกเล่มที่เหมาะกับคุณจากสำนักพิมพ์ชี้ดาบ" />
-      </Head>
-      <MoodDisplay moods={moods} />
-    </>
-  );
+  return <MoodDisplay moods={moods} />;
 }
