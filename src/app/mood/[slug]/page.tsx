@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
+import { useParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import MoodLoading from '../components/MoodLoading';
 
@@ -12,7 +12,8 @@ const MoodPage = () => {
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const { slug } = router.query;
+  const params = useParams(); // Correctly use useParams
+  const slug = params.slug; // Access the slug parameter
 
   useEffect(() => {
     if (slug) {
