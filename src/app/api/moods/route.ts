@@ -118,13 +118,6 @@ export async function GET() {
           cover: "/covers/natto.png"
         },
         {
-          title: "พังเรนเจอร์ FINAL",
-          author: "ชี้ดาบและทีม",
-          description: "รวมเรื่องพังสุดขีด ที่บอกว่าความพังก็มีพลังได้",
-          link: "https://www.chidahp.com/books/พังเรนเจอร์",
-          cover: "/covers/pang-final.png"
-        },
-        {
           title: "ไปญี่ปุ่นด้วยเงิน 7,000",
           author: "ชี้ดาบ",
           description: "ใช้เงินหลักพันเพื่อเก็บเรื่องเล่าหลักล้าน!",
