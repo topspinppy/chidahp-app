@@ -115,14 +115,14 @@ export async function GET() {
           description: "รวมความชุ่ยในแดนอาทิตย์อุทัย ที่ทั้งฮา ทั้ง WTF!",
           quote: "ชุ่ยให้สุด แล้วหยุดที่ซูชิ!",
           link: "https://www.chidahp.com/books/นัตโตะ",
-          cover: "/covers/natto.jpg"
+          cover: "/covers/natto.png"
         },
         {
           title: "พังเรนเจอร์ FINAL",
           author: "ชี้ดาบและทีม",
           description: "รวมเรื่องพังสุดขีด ที่บอกว่าความพังก็มีพลังได้",
           link: "https://www.chidahp.com/books/พังเรนเจอร์",
-          cover: "/covers/pang-final.jpg"
+          cover: "/covers/pang-final.png"
         },
         {
           title: "ไปญี่ปุ่นด้วยเงิน 7,000",
@@ -130,7 +130,7 @@ export async function GET() {
           description: "ใช้เงินหลักพันเพื่อเก็บเรื่องเล่าหลักล้าน!",
           quote: "ไม่ต้องรวย... แค่กล้าก็ไปได้",
           link: "https://www.chidahp.com/books/ไปญี่ปุ่น7000",
-          cover: "/covers/7000yen.jpg"
+          cover: "/covers/7000yen.png"
         }
       ]
     },
@@ -146,14 +146,14 @@ export async function GET() {
           author: "ชี้ดาบ",
           description: "เริ่มต้นการเดินทางเพื่อหาความหมายชีวิต ผ่านถนน 7,000 กิโล",
           link: "https://www.chidahp.com/books/route13-part1",
-          cover: "/covers/route13pt1.jpg"
+          cover: "/covers/route13pt1.png"
         },
         {
           title: "1 ปี กับชีวิตที่ผมอยู่ในอเมริกา 2",
           author: "ชี้ดาบ",
           description: "ตอนจบของชีวิตต่างแดน ที่ทิ้งคำถามกับหัวใจไว้มากมาย",
           link: "https://www.chidahp.com/books/1ปีอเมริกา2",
-          cover: "/covers/year2.jpg"
+          cover: "/covers/year2.png"
         },
         {
           title: "ตามติดชีวิตอินเดีย 2",

@@ -6,7 +6,6 @@ import MoodDisplay from "./components/MoodDisplay";
 // ใช้ fetch แทน axios
 async function fetchMoods() {
   try {
-    console.log(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/moods`);
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/moods`, {
       cache: 'no-store',
     });
