@@ -1,30 +1,88 @@
-// app/cardtel/page.tsx (ถ้าใช้ App Router)
-export const dynamic = 'force-dynamic'; // 👈 สำคัญ
+"use client";
 
-import MoodDisplay from "./components/MoodDisplay";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image"; // อย่าลืม import ด้วยนะค้าบ
 
-// ใช้ fetch แทน axios
-async function fetchMoods() {
-  try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/moods`, {
-      cache: 'no-store',
-    });
-    if (!res.ok) throw new Error('Failed to fetch moods');
-    return await res.json();
-  } catch (error) {
-    console.error('Error fetching moods:', error);
-    throw new Error('Failed to fetch moods');
-  }
-}
+export default function IntroPage() {
+  const router = useRouter();
+  const [showContent, setShowContent] = useState(false);
 
-// Metadata แบบ App Router
-export const metadata = {
-  title: "Cardtel by ชี้ดาบ | อ่านอะไรดีตามอารมณ์",
-  description: "เลือกอารมณ์ แล้วเราจะบอกเล่มที่เหมาะกับคุณจากสำนักพิมพ์ชี้ดาบ",
-};
+  useEffect(() => {
+    setShowContent(true);
+  }, []);
 
-// Main component
-export default async function CardTel() {
-  const moods = await fetchMoods();
-  return <MoodDisplay moods={moods} />;
+  const handleStart = () => {
+    setShowContent(false);
+    setTimeout(() => {
+      router.push("/mood/choose-mood");
+    }, 1000);
+  };
+
+  return (
+    <div className="relative min-h-screen w-full overflow-hidden font-primary">
+      {/* --- BACKGROUND --- */}
+      <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 via-orange-400 to-red-500 opacity-80 backdrop-blur-sm"></div>
+
+      {/* --- CONTENT --- */}
+      <AnimatePresence>
+        {showContent && (
+          <motion.div
+            className="relative flex flex-col items-center justify-center min-h-screen text-center px-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1 }}
+          >
+            {/* โลโก้ชี้ดาบด้านบน */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.7 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 1, delay: 0.2 }}
+              className="mb-8"
+            >
+              <Image
+                src="/logo/chidahp-logo.png" // เปลี่ยนเป็น path ที่ถูกต้องของคุณ
+                alt="ชี้ดาบโลโก้"
+                width={120}
+                height={120}
+                className="mx-auto drop-shadow-lg animate-bounce"
+              />
+            </motion.div>
+
+            {/* ข้อความ Quote */}
+            <motion.h1
+              className="text-3xl md:text-5xl font-bold text-white mb-4 drop-shadow-lg"
+              initial={{ y: -50 }}
+              animate={{ y: 0 }}
+              transition={{ duration: 1 }}
+            >
+              เราอาจไม่รู้ว่าคุณกำลังรู้สึกอะไร...
+            </motion.h1>
+
+            <motion.p
+              className="text-xl md:text-2xl text-white mb-10 text-opacity-90"
+              initial={{ y: 50 }}
+              animate={{ y: 0 }}
+              transition={{ duration: 1 }}
+            >
+              แต่เรามีเล่มนึงที่อาจเข้าใจคุณมากกว่าที่คุณคิด
+            </motion.p>
+
+            {/* ปุ่มเริ่ม */}
+            <motion.button
+              onClick={handleStart}
+              className="px-8 py-3 bg-white text-black rounded-full text-lg font-semibold hover:bg-yellow-200 transition drop-shadow-md"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 1, delay: 0.5 }}
+            >
+              เริ่มเลือกอารมณ์ของคุณ
+            </motion.button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
 }

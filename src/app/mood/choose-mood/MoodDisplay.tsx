@@ -1,9 +1,23 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
+/* --- IMPORT ZONE --- */
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion"; // เพิ่มตรงนี้
 
+/* --- QUOTES DATA ZONE --- */
+const moodQuotes: Record<string, string> = {
+  "เศร้า": "มีคนเขียนเรื่องนี้ไว้ให้คุณแล้วนะ 🖤",
+  "อยากบ้า": "ไปให้สุด แล้วหยุดที่คนอ่านจบ",
+  "อินเลิฟ": "อินเลิฟก็ต้องอินหนังสือด้วย 💘",
+  "สับสน": "บางทีคำตอบก็ไม่ได้อยู่ในหัว แต่อยู่ในเล่ม",
+  "ต้องการกำลังใจ": "เธอเจ๋งกว่าที่คิดนะเว้ย 💪",
+  "อยากเข้าใจตัวเอง": "ไม่มีคำตอบไหนแม่นเท่าคำตอบของตัวเราเอง",
+  "อยากไปไกลๆ": "บางทีก็แค่อยากหนี แล้วไปเจออะไรดีๆ ข้างหน้า 🌍",
+  "โกรธโลก": "โลกมันร้าย แต่เธอยังเขียนเรื่องรอดได้เอง ✊",
+};
+
+/* --- COMPONENT ZONE --- */
 export default function MoodDisplay({ moods }: { moods: any[] }) {
   const router = useRouter();
   const [background, setBackground] = useState(
@@ -14,17 +28,7 @@ export default function MoodDisplay({ moods }: { moods: any[] }) {
   const [selectedBook, setSelectedBook] = useState<any>(null);
   const [showQuote, setShowQuote] = useState(false);
 
-  const moodQuotes: Record<string, string> = {
-    "เศร้า": "มีคนเขียนเรื่องนี้ไว้ให้คุณแล้วนะ 🖤",
-    "อยากบ้า": "ไปให้สุด แล้วหยุดที่คนอ่านจบ",
-    "อินเลิฟ": "อินเลิฟก็ต้องอินหนังสือด้วย 💘",
-    "สับสน": "บางทีคำตอบก็ไม่ได้อยู่ในหัว แต่อยู่ในเล่ม",
-    "ต้องการกำลังใจ": "เธอเจ๋งกว่าที่คิดนะเว้ย 💪",
-    "อยากเข้าใจตัวเอง": "ไม่มีคำตอบไหนแม่นเท่าคำตอบของตัวเราเอง",
-    "อยากไปไกลๆ": "บางทีก็แค่อยากหนี แล้วไปเจออะไรดีๆ ข้างหน้า 🌍",
-    "โกรธโลก": "โลกมันร้าย แต่เธอยังเขียนเรื่องรอดได้เอง ✊",
-  };
-
+  /* --- ACTION ZONE --- */
   const handleRandomMood = () => {
     const randomMood = moods[Math.floor(Math.random() * moods.length)];
     const books = randomMood.books;
@@ -39,12 +43,17 @@ export default function MoodDisplay({ moods }: { moods: any[] }) {
     router.push(`/mood/${slug}`);
   };
 
+  /* --- RENDER ZONE --- */
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0}}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 1.2, ease: "easeOut" }}
       className={`min-h-screen flex items-center justify-center transition-all duration-[1500ms] ease-in-out bg-animate ${background}`}
     >
       <div className="pt-16 px-6 relative w-full">
-        {/* กล่องข้อความอารมณ์กลางจอ */}
+
+        {/* --- QUOTE OVERLAY --- */}
         {showQuote && selectedMood && moodQuotes[selectedMood.mood] && (
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 
             text-white text-center text-xl md:text-2xl font-semibold bg-black bg-opacity-60 
@@ -53,7 +62,7 @@ export default function MoodDisplay({ moods }: { moods: any[] }) {
           </div>
         )}
 
-        {/* Header */}
+        {/* --- HEADER --- */}
         <header className="flex flex-col items-center justify-center mb-10 text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-white drop-shadow-lg font-primary">
             อารมณ์แบบนี้ อ่านเล่มไหนดี?
@@ -63,7 +72,7 @@ export default function MoodDisplay({ moods }: { moods: any[] }) {
           </p>
         </header>
 
-        {/* Mood Cards */}
+        {/* --- MOOD GRID --- */}
         <main className="max-w-4xl mx-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 text-white">
           {moods.map((mood, index) => (
             <div
@@ -83,7 +92,7 @@ export default function MoodDisplay({ moods }: { moods: any[] }) {
                 setTimeout(() => {
                   setShowQuote(false);
                   goToMoodPage(mood);
-                }, 2500); // 2.5 วิ
+                }, 2500);
               }}
             >
               <div className="text-4xl">{mood.emoji}</div>
@@ -94,7 +103,7 @@ export default function MoodDisplay({ moods }: { moods: any[] }) {
           ))}
         </main>
 
-        {/* Random Button */}
+        {/* --- RANDOM BUTTON --- */}
         <div className="mt-10 flex justify-center">
           <button
             onClick={handleRandomMood}
@@ -107,7 +116,7 @@ export default function MoodDisplay({ moods }: { moods: any[] }) {
           </button>
         </div>
 
-        {/* Footer */}
+        {/* --- FOOTER --- */}
         <footer className="mt-24 text-center text-white text-xs sm:text-sm opacity-60 px-4 font-primary">
           <div className="py-6 border-t border-white border-opacity-20">
             <p className="italic">
@@ -132,7 +141,7 @@ export default function MoodDisplay({ moods }: { moods: any[] }) {
         </footer>
       </div>
 
-      {/* Modal แนะนำเล่ม (ปุ่มสุ่ม) */}
+      {/* --- MODAL RANDOM BOOK --- */}
       {showModal && selectedMood && selectedBook && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm">
           <div className="bg-white text-black rounded-xl shadow-xl w-full max-w-md mx-6 p-6 text-center animate-fadeIn relative">
@@ -141,7 +150,6 @@ export default function MoodDisplay({ moods }: { moods: any[] }) {
             <p className="text-sm italic text-gray-500 mb-4">
               วันนี้คุณกำลังรู้สึกแบบนี้สินะ...
             </p>
-
             <img
               src={selectedBook.cover}
               alt={selectedBook.title}
@@ -159,6 +167,7 @@ export default function MoodDisplay({ moods }: { moods: any[] }) {
               อ่านเพิ่มเติม
             </a>
 
+            {/* SHARE */}
             <div className="mt-6">
               <p className="text-sm text-gray-500 mb-2">แชร์อารมณ์นี้ให้เพื่อน:</p>
               <div className="flex items-center justify-center gap-2">
@@ -195,6 +204,6 @@ export default function MoodDisplay({ moods }: { moods: any[] }) {
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
