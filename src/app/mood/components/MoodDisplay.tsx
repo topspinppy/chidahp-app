@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 export default function MoodDisplay({ moods }: { moods: any[] }) {
@@ -12,6 +12,18 @@ export default function MoodDisplay({ moods }: { moods: any[] }) {
   const [showModal, setShowModal] = useState(false);
   const [selectedMood, setSelectedMood] = useState<any>(null);
   const [selectedBook, setSelectedBook] = useState<any>(null);
+  const [showQuote, setShowQuote] = useState(false);
+
+  const moodQuotes: Record<string, string> = {
+    "เศร้า": "มีคนเขียนเรื่องนี้ไว้ให้คุณแล้วนะ 🖤",
+    "อยากบ้า": "ไปให้สุด แล้วหยุดที่คนอ่านจบ",
+    "อินเลิฟ": "อินเลิฟก็ต้องอินหนังสือด้วย 💘",
+    "สับสน": "บางทีคำตอบก็ไม่ได้อยู่ในหัว แต่อยู่ในเล่ม",
+    "ต้องการกำลังใจ": "เธอเจ๋งกว่าที่คิดนะเว้ย 💪",
+    "อยากเข้าใจตัวเอง": "ไม่มีคำตอบไหนแม่นเท่าคำตอบของตัวเราเอง",
+    "อยากไปไกลๆ": "บางทีก็แค่อยากหนี แล้วไปเจออะไรดีๆ ข้างหน้า 🌍",
+    "โกรธโลก": "โลกมันร้าย แต่เธอยังเขียนเรื่องรอดได้เอง ✊",
+  };
 
   const handleRandomMood = () => {
     const randomMood = moods[Math.floor(Math.random() * moods.length)];
@@ -29,9 +41,19 @@ export default function MoodDisplay({ moods }: { moods: any[] }) {
 
   return (
     <div
-      className={`min-h-screen flex items-center justify-center transition-all duration-[1500ms] ease-in-out ${background}`}
+      className={`min-h-screen flex items-center justify-center transition-all duration-[1500ms] ease-in-out bg-animate ${background}`}
     >
-      <div className="pt-16 px-6">
+      <div className="pt-16 px-6 relative w-full">
+        {/* กล่องข้อความอารมณ์กลางจอ */}
+        {showQuote && selectedMood && moodQuotes[selectedMood.mood] && (
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 
+            text-white text-center text-xl md:text-2xl font-semibold bg-black bg-opacity-60 
+            px-6 py-4 rounded-xl animate-fadeIn z-50 max-w-md shadow-lg">
+            {moodQuotes[selectedMood.mood]}
+          </div>
+        )}
+
+        {/* Header */}
         <header className="flex flex-col items-center justify-center mb-10 text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-white drop-shadow-lg font-primary">
             อารมณ์แบบนี้ อ่านเล่มไหนดี?
@@ -47,14 +69,21 @@ export default function MoodDisplay({ moods }: { moods: any[] }) {
             <div
               key={index}
               className="bg-white bg-opacity-10 rounded-xl p-4 flex flex-col items-center justify-center transition-all cursor-pointer transform hover:scale-105"
-              onMouseEnter={() => setBackground(mood.gradient)}
+              onMouseEnter={() =>
+                setBackground(`${mood.gradient} animate-gradient`)
+              }
               onMouseLeave={() =>
                 setBackground(
                   "bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400"
                 )
               }
               onClick={() => {
-                setTimeout(() => goToMoodPage(mood), 400); // ให้ effect แว้บก่อนเปลี่ยนหน้า
+                setSelectedMood(mood);
+                setShowQuote(true);
+                setTimeout(() => {
+                  setShowQuote(false);
+                  goToMoodPage(mood);
+                }, 2500); // 2.5 วิ
               }}
             >
               <div className="text-4xl">{mood.emoji}</div>
@@ -103,11 +132,10 @@ export default function MoodDisplay({ moods }: { moods: any[] }) {
         </footer>
       </div>
 
-      {/* Cinematic Modal */}
+      {/* Modal แนะนำเล่ม (ปุ่มสุ่ม) */}
       {showModal && selectedMood && selectedBook && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 backdrop-blur-sm">
           <div className="bg-white text-black rounded-xl shadow-xl w-full max-w-md mx-6 p-6 text-center animate-fadeIn relative">
-            {/* Mood & Book Info */}
             <div className="text-6xl mb-2">{selectedMood.emoji}</div>
             <h2 className="text-2xl font-bold">{selectedMood.mood}</h2>
             <p className="text-sm italic text-gray-500 mb-4">
@@ -131,7 +159,6 @@ export default function MoodDisplay({ moods }: { moods: any[] }) {
               อ่านเพิ่มเติม
             </a>
 
-            {/* แชร์ลิงก์ */}
             <div className="mt-6">
               <p className="text-sm text-gray-500 mb-2">แชร์อารมณ์นี้ให้เพื่อน:</p>
               <div className="flex items-center justify-center gap-2">

@@ -6,3 +6,32 @@
 @theme {
   --font-primary: "Anakotmai-light";
 }
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+@keyframes gradientBackground {
+  0%, 100% {
+    background-position: left center;
+  }
+  50% {
+    background-position: right center;
+  }
+}
+.bg-animate {
+  background-size: 200% 200%;
+}
+.animate-gradient {
+  animation: gradientBackground 5s ease infinite;
+}
