@@ -465,8 +465,8 @@ const MoodPage = () => {
                 </h2>
 
                 <p className="text-sm text-gray-700 mb-2">
-                  สำหรับ <strong>iOS</strong> แนะนำให้{" "}
-                  <strong>กดที่ภาพด้านล่างค้างไว้ แล้วเลือก "บันทึกรูปภาพ"</strong> เพื่อเก็บไว้ในเครื่อง
+                  สำหรับ <strong>iOS</strong> แนะนำให้
+                  <strong>กดที่ภาพด้านล่างค้างไว้ แล้วเลือก {"บันทึกรูปภาพ"}</strong> เพื่อเก็บไว้ในเครื่อง
                 </p>
 
                 <p className="text-sm text-gray-700 mb-2">
