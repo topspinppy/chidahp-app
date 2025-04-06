@@ -176,6 +176,7 @@ const MoodPage = () => {
     el.style.pointerEvents = "none";
   };
 
+
   if (loading || !mood || !book) return <MoodLoading />;
 
   if (showIntroQuote) {
@@ -425,12 +426,12 @@ const MoodPage = () => {
             >
               📷 แคปเป็นรูป Story IG
             </button>
-            <button
-              onClick={handleCaptureStory}
+            {/* <button
+              onClick={() => router.push('/mood/choose-mood')}
               className="bg-white bg-opacity-20 hover:bg-opacity-30 text-black px-4 py-2 rounded-full text-sm transition"
             >
               🎲 เปลี่ยนใจ ขออีกเล่ม!
-            </button>
+            </button> */}
             <button
               onClick={handleCopy}
               className="bg-white text-black bg-opacity-20 px-4 py-2 rounded-full text-sm hover:bg-opacity-30 transition"
@@ -475,7 +476,7 @@ const MoodPage = () => {
                 <div className="text-sm text-gray-700 space-y-4 mb-4 text-left">
                   <p>
                     <strong>📱 iOS:</strong> กดค้างที่ภาพด้านล่าง แล้วเลือก{" "}
-                    <strong>"บันทึกรูปภาพ"</strong> เพื่อเก็บไว้ในเครื่อง
+                    <strong>{'บันทึกรูปภาพ'}</strong> เพื่อเก็บไว้ในเครื่อง
                   </p>
 
                   <p>
@@ -507,9 +508,24 @@ const MoodPage = () => {
                 >
                   ปิดหน้าต่าง
                 </button>
+
+                {/* ปุ่มแชร์ไป IG Story */}
+                <button
+                  onClick={() => {
+                    if (navigator.userAgent.match(/(iPhone|iPod|Android|Windows Phone)/i)) {
+                      window.location.href = "instagram://";
+                    } else {
+                      alert("กรุณาเปิด Instagram app บนมือถือเพื่อใช้งาน");
+                    }
+                  }}
+                  className="bg-blue-400 hover:bg-blue-500 text-white px-4 py-2 rounded-full text-sm mt-4"
+                >
+                  🚀 กดเพื่อไปยัง IG Story
+                </button>
               </div>
             </div>
           )}
+
 
         </motion.div>
       </AnimatePresence>

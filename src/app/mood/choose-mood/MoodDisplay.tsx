@@ -68,6 +68,8 @@ export default function MoodDisplay({ moods }: { moods: any[] }) {
     router.push(`/mood/${slug}`);
   };
 
+  
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
