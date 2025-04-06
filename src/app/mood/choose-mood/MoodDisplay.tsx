@@ -1,12 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-/* --- IMPORT ZONE --- */
-import { useState, useMemo } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 
-/* --- QUOTES DATA ZONE --- */
 const moodQuotes: Record<string, string> = {
   "เศร้า": "มีคนเขียนเรื่องนี้ไว้ให้คุณแล้วนะ 🖤",
   "อยากบ้า": "บางทีความบ้าก็ช่วยให้เราอยู่รอดจากโลกที่จริงจังเกินไป",
@@ -24,34 +22,50 @@ const moodQuotes: Record<string, string> = {
 
 export default function MoodDisplay({ moods }: { moods: any[] }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const subFromQuery = searchParams.get("sub")?.trim().toLowerCase() || "";
   const [background, setBackground] = useState(
     "bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400"
   );
   const [showQuote, setShowQuote] = useState(false);
   const [selectedMood, setSelectedMood] = useState<any>(null);
+  const [subfeelings, setSubfeelings] = useState<string[]>([]);
 
-  /* --- RANKING LOGIC --- */
+  // ✅ โหลด subfeelings จาก sessionStorage
+  useEffect(() => {
+    const stored = sessionStorage.getItem("subfeelings");
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          setSubfeelings(parsed);
+        } else {
+          throw new Error("Invalid format");
+        }
+      } catch {
+        router.push("/mood/pre-question");
+      }
+    } else {
+      router.push("/mood/pre-question");
+    }
+  }, [router]);
+
+  // ✅ จัดอันดับ moods ตามการ match กับ subfeelings
   const rankedMoods = useMemo(() => {
     return [...moods].sort((a, b) => {
-      const countMatch = (mood: any) =>
+      const score = (mood: any) =>
         mood.books.reduce((acc: number, book: any) => {
           const matches = book.matchSubfeelings?.filter((sub: string) =>
-            sub.toLowerCase().includes(subFromQuery)
+            subfeelings.some((sf) => sub.toLowerCase() === sf.toLowerCase())
           )?.length || 0;
           return acc + matches;
         }, 0);
-
-      return countMatch(b) - countMatch(a);
+      return score(b) - score(a);
     });
-  }, [moods, subFromQuery]);
+  }, [moods, subfeelings]);
 
-  /* --- ACTION --- */
+  // ✅ ไปหน้ารายละเอียด mood โดยไม่ต้องพ่วง query
   const goToMoodPage = (mood: any) => {
     const slug = encodeURIComponent(mood.mood);
-    const query = subFromQuery ? `?sub=${encodeURIComponent(subFromQuery)}` : "";
-    router.push(`/mood/${slug}${query}`);
+    router.push(`/mood/${slug}`);
   };
 
   return (
@@ -63,7 +77,7 @@ export default function MoodDisplay({ moods }: { moods: any[] }) {
     >
       <div className="pt-16 px-6 relative w-full">
 
-        {/* --- QUOTE OVERLAY --- */}
+        {/* QUOTE OVERLAY */}
         {showQuote && selectedMood && moodQuotes[selectedMood.mood] && (
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 
             text-white text-center text-xl md:text-2xl font-semibold bg-black bg-opacity-60 
@@ -72,19 +86,22 @@ export default function MoodDisplay({ moods }: { moods: any[] }) {
           </div>
         )}
 
-        {/* --- HEADER --- */}
+        {/* HEADER */}
         <header className="flex flex-col items-center justify-center mb-10 text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-white drop-shadow-lg font-primary">
-            อารมณ์แบบนี้ อ่านเล่มไหนดี?
+            ชี้ดาบลองเดาใจคุณดู...
           </h1>
           <p className="mt-2 text-white text-opacity-80 text-base md:text-lg">
-            ชี้ดาบจะชี้ให้เอง...ตามหัวใจคุณ 💫
+            จากคำตอบที่คุณให้ เราว่าคุณน่าจะรู้สึกแบบนี้นะ 🧠💬
+          </p>
+          <p className="mt-2 text-white text-opacity-70 text-sm italic">
+            ถ้ารู้สึกใช่...คลิกเพื่อดูเล่มที่เราเตรียมไว้ให้เลย
           </p>
         </header>
 
-        {/* --- MOOD GRID --- */}
+        {/* MOOD GRID */}
         <main className="max-w-4xl mx-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 text-white">
-          {rankedMoods.map((mood, index) => (
+          {rankedMoods.slice(0, 4).map((mood, index) => (
             <div
               key={index}
               className="bg-white bg-opacity-10 rounded-xl p-4 flex flex-col items-center justify-center transition-all cursor-pointer transform hover:scale-105"
@@ -113,7 +130,7 @@ export default function MoodDisplay({ moods }: { moods: any[] }) {
           ))}
         </main>
 
-        {/* --- FOOTER --- */}
+        {/* FOOTER */}
         <footer className="mt-24 text-center text-white text-xs sm:text-sm opacity-60 px-4 font-primary">
           <div className="py-6 border-t border-white border-opacity-20">
             <p className="italic">

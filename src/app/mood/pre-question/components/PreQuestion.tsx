@@ -32,18 +32,18 @@ export default function PreQuestionFlow({ questions }: { questions: Question[] }
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Choice[]>([]);
-  const [subfeelings, setSubfeelings] = useState<string[]>([]);
   const [showReaction, setShowReaction] = useState(false);
   const [currentReaction, setCurrentReaction] = useState("");
-  const [currentMoodColor, setCurrentMoodColor] = useState<string>("from-indigo-100 via-zinc-50 to-amber-50");
+  const [currentMoodColor, setCurrentMoodColor] = useState("from-indigo-100 via-zinc-50 to-amber-50");
   const [selectedText, setSelectedText] = useState<string | null>(null);
 
   const currentQuestion = questions[step];
   const totalSteps = questions.length;
 
   const handleChoice = (choice: Choice) => {
-    setAnswers((prev) => [...prev, choice]);
-    setSubfeelings((prev) => [...prev, choice.subfeeling]);
+    const updatedAnswers = [...answers, choice];
+
+    setAnswers(updatedAnswers);
     setCurrentReaction(choice.reaction || "");
     setSelectedText(choice.text);
     setCurrentMoodColor(moodGradientMap[choice.mood] || currentMoodColor);
@@ -56,21 +56,28 @@ export default function PreQuestionFlow({ questions }: { questions: Question[] }
       if (step < totalSteps - 1) {
         setStep(step + 1);
       } else {
+        // ✅ นับ mood และ subfeeling ทั้งหมด
         const countBy = (key: "mood" | "subfeeling") =>
-          answers
-            .concat(choice)
-            .reduce((acc, curr) => {
-              const k = curr[key];
-              acc[k] = (acc[k] || 0) + 1;
-              return acc;
-            }, {} as Record<string, number>);
+          updatedAnswers.reduce((acc, curr) => {
+            const k = curr[key];
+            acc[k] = (acc[k] || 0) + 1;
+            return acc;
+          }, {} as Record<string, number>);
 
-        const mostFrequent = (map: Record<string, number>) =>
-          Object.entries(map).sort((a, b) => b[1] - a[1])[0][0];
+        const topNFrequent = (map: Record<string, number>, n: number) =>
+          Object.entries(map)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, n)
+            .map(([key]) => key);
 
-        const finalMood = mostFrequent(countBy("mood"));
+        const topMoods = topNFrequent(countBy("mood"), 3);
+        const allSubfeelings = updatedAnswers.map((a) => a.subfeeling);
 
-        router.push(`/mood/choose-mood?mood=${finalMood}&sub=${encodeURIComponent(JSON.stringify(subfeelings))}`);
+        // ✅ เก็บ subfeelings ลง sessionStorage
+        sessionStorage.setItem("subfeelings", JSON.stringify(allSubfeelings));
+
+        // ✅ ไป choose-mood page โดยไม่ต้องส่ง sub ผ่าน query string
+        router.push(`/mood/choose-mood?moods=${encodeURIComponent(JSON.stringify(topMoods))}`);
       }
     }, 1400);
   };
@@ -79,8 +86,7 @@ export default function PreQuestionFlow({ questions }: { questions: Question[] }
 
   return (
     <div className={`min-h-screen w-full bg-gradient-to-b ${currentMoodColor} transition-all relative flex items-center justify-center`}>
-      
-      {/* Reaction overlay blur */}
+      {/* Overlay */}
       <AnimatePresence>
         {showReaction && (
           <motion.div
@@ -93,7 +99,7 @@ export default function PreQuestionFlow({ questions }: { questions: Question[] }
         )}
       </AnimatePresence>
 
-      {/* Reaction floating box */}
+      {/* Floating reaction box */}
       <AnimatePresence>
         {showReaction && currentReaction && (
           <motion.div
@@ -113,7 +119,6 @@ export default function PreQuestionFlow({ questions }: { questions: Question[] }
 
       {/* Main content */}
       <div className="max-w-xl w-full px-4 py-12 text-center relative z-10">
-        
         {/* Progress bar */}
         <motion.div
           className="w-full h-2 bg-gray-200 rounded-full mb-6 overflow-hidden"

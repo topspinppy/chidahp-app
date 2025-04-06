@@ -13,6 +13,7 @@ const MoodPage = () => {
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showIntroQuote, setShowIntroQuote] = useState(true);
+  const [matchedSubs, setMatchedSubs] = useState<string[]>([]);
 
   const router = useRouter();
   const params = useParams();
@@ -28,42 +29,59 @@ const MoodPage = () => {
     try {
       setLoading(true);
 
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/moods`,
-        {
-          cache: "no-store",
-        }
-      );
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/moods`, {
+        cache: "no-store",
+      });
       if (!res.ok) throw new Error("Failed to fetch moods");
 
       const moods = await res.json();
-      const moodData = moods.find(
-        (m: any) => m.mood === decodeURIComponent(slug as string)
-      );
+      const moodData = moods.find((m: any) => m.mood === decodeURIComponent(slug as string));
 
       if (!moodData) {
         router.push("/404");
         return;
       }
 
-      // ดึง subfeeling จาก query string
-      const searchParams = new URLSearchParams(window.location.search);
-      const subFromQuery = searchParams.get("sub");
-
+      // ✅ อ่าน subfeelings จาก sessionStorage แทน query string
+      const stored = sessionStorage.getItem("subfeelings");
+      let parsedSubs: string[] = [];
       let bestMatchBook = null;
 
-      if (subFromQuery) {
-        const subLower = subFromQuery.toLowerCase();
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) {
+            parsedSubs = parsed;
+          } else {
+            throw new Error("subfeelings is not an array");
+          }
 
-        bestMatchBook = moodData.books.find((b: any) =>
-          b.matchSubfeelings?.some((s: string) =>
-            s.toLowerCase().includes(subLower)
-          )
-        );
+          const scoredBooks = moodData.books
+            .map((b: any) => {
+              const matched = b.matchSubfeelings?.filter((s: string) =>
+                parsedSubs.includes(s)
+              ) || [];
+              return { ...b, matchCount: matched.length, matchedSubs: matched };
+            })
+            .filter((b: any) => b.matchCount > 0)
+            .sort((a, b) => b.matchCount - a.matchCount);
+
+          if (scoredBooks.length > 0) {
+            bestMatchBook = scoredBooks[0];
+            setMatchedSubs(scoredBooks[0].matchedSubs || []);
+          }
+        } catch (e) {
+          console.warn("Error parsing subfeelings:", e);
+          router.push("/mood/pre-question");
+          return;
+        }
+      } else {
+        // ⛔ ถ้าไม่มี sessionStorage ให้กลับไปเริ่มใหม่
+        router.push("/mood/pre-question");
+        return;
       }
 
-      const fallbackBook =
-        moodData.books[Math.floor(Math.random() * moodData.books.length)];
+      const fallbackBook = moodData.books[Math.floor(Math.random() * moodData.books.length)];
 
       setTimeout(() => {
         setMood(moodData);
@@ -175,15 +193,20 @@ const MoodPage = () => {
               />
             )}
 
-            {book.tagline && (
-              <p className="italic text-sm text-gray-700 text-center mb-4">
-                “{book.tagline}”
-              </p>
-            )}
-
             <h2 className="text-xl font-bold text-center mb-1">{book.title}</h2>
             <p className="text-sm text-gray-600 text-center">{book.description}</p>
             <p className="text-xs text-gray-400 mt-2">โดย {book.author}</p>
+
+            {matchedSubs.length > 0 && (
+              <div className="mt-4 text-xs text-gray-500 text-left w-full">
+                <div className="mb-1 font-semibold">📌 เพราะคุณรู้สึกว่า...</div>
+                <ul className="list-disc list-inside">
+                  {matchedSubs.map((s) => (
+                    <li key={s}>{s}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             <a
               href={book.link}
