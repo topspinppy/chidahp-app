@@ -458,36 +458,52 @@ const MoodPage = () => {
 
           {/* ✅ Modal Preview */}
           {showShareModal && capturedImage && (
-            <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[10000] px-4">
-              <div className="bg-white text-black rounded-xl p-5 max-w-sm w-full text-center shadow-xl">
-                <h2 className="text-lg font-semibold mb-3">
+            <div className="fixed inset-0 z-[10000] bg-black bg-opacity-60 flex items-center justify-center px-4">
+              <div
+                className="bg-white text-black rounded-xl p-5 w-full max-w-md text-center shadow-xl"
+                style={{
+                  maxHeight: "90vh",
+                  overflowY: "auto",
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+              >
+                <h2 className="text-lg font-semibold mb-4">
                   📸 ดาวน์โหลดภาพเรียบร้อยแล้ว!
                 </h2>
 
-                <p className="text-sm text-gray-700 mb-2">
-                  สำหรับ <strong>iOS</strong> แนะนำให้
-                  <strong>กดที่ภาพด้านล่างค้างไว้ แล้วเลือก {"บันทึกรูปภาพ"}</strong> เพื่อเก็บไว้ในเครื่อง
-                </p>
+                <div className="text-sm text-gray-700 space-y-4 mb-4 text-left">
+                  <p>
+                    <strong>📱 iOS:</strong> กดค้างที่ภาพด้านล่าง แล้วเลือก{" "}
+                    <strong>"บันทึกรูปภาพ"</strong> เพื่อเก็บไว้ในเครื่อง
+                  </p>
 
-                <p className="text-sm text-gray-700 mb-2">
-                  สำหรับ <strong>Android / คอมพิวเตอร์</strong> ระบบจะดาวน์โหลดภาพให้อัตโนมัติ หรือคุณสามารถกดที่ภาพเพื่อบันทึกได้เช่นกัน
-                </p>
+                  <p>
+                    <strong>🤖 Android / คอมพิวเตอร์:</strong> ระบบจะดาวน์โหลดให้อัตโนมัติ หรือแตะภาพเพื่อบันทึกได้เช่นกัน
+                  </p>
 
-                <p className="text-sm text-gray-700 mb-4">
-                  หลังจากนั้นสามารถแชร์ลง IG Story ได้เลย 💫 <br />
-                  อย่าลืมแท็ก <strong>@chidahp</strong> และติดแฮชแท็ก{" "}
-                  <strong>#ชี้ดาบแนะนำ</strong> ด้วยนะค้าบ 💛
-                </p>
+                  <p>
+                    จากนั้นสามารถแชร์ภาพลง IG Story ได้เลย 💫<br />
+                    อย่าลืมแท็ก <strong>@chidahp</strong> และใช้แฮชแท็ก{" "}
+                    <strong>#ชี้ดาบแนะนำ</strong> ด้วยน้า 💛
+                  </p>
+                </div>
 
                 <img
                   src={capturedImage}
                   alt="preview"
-                  className="rounded-lg mb-4 shadow cursor-pointer"
+                  className="rounded-lg mb-5 shadow cursor-pointer max-w-full h-auto mx-auto"
+                  onClick={() => {
+                    const a = document.createElement("a");
+                    a.href = capturedImage;
+                    a.download = `chidahp-story-${book.title}.png`;
+                    a.click();
+                  }}
                 />
 
                 <button
                   onClick={() => setShowShareModal(false)}
-                  className="bg-black text-white px-4 py-2 rounded-full text-sm"
+                  className="bg-black text-white px-4 py-2 rounded-full text-sm self-center"
                 >
                   ปิดหน้าต่าง
                 </button>
