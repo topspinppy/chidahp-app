@@ -64,7 +64,7 @@ const MoodPage = () => {
               return { ...b, matchCount: matched.length, matchedSubs: matched };
             })
             .filter((b: any) => b.matchCount > 0)
-            .sort((a, b) => b.matchCount - a.matchCount);
+            .sort((a: { matchCount: number; }, b: { matchCount: number; }) => b.matchCount - a.matchCount);
 
           if (scoredBooks.length > 0) {
             bestMatchBook = scoredBooks[0];
