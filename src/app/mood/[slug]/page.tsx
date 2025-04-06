@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import MoodLoading from "../components/MoodLoading";
 import Image from "next/image";
+import * as htmlToImage from "html-to-image"; // ด้านบนสุด
 
 const MoodPage = () => {
   const [mood, setMood] = useState<any>(null);
@@ -14,91 +15,98 @@ const MoodPage = () => {
   const [loading, setLoading] = useState(true);
   const [showIntroQuote, setShowIntroQuote] = useState(true);
   const [matchedSubs, setMatchedSubs] = useState<string[]>([]);
+  const [typedQuote, setTypedQuote] = useState("");
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [typedLineTwo, setTypedLineTwo] = useState("");
+  const storyCaptureRef = useRef<HTMLDivElement>(null);
 
   const router = useRouter();
   const params = useParams();
   const slug = params.slug;
 
   useEffect(() => {
-    if (slug) {
-      fetchMood();
-    }
+    if (slug) fetchMood();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug]);
 
   const fetchMood = async () => {
     try {
       setLoading(true);
-
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/moods`, {
-        cache: "no-store",
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/moods`,
+        { cache: "no-store" }
+      );
       if (!res.ok) throw new Error("Failed to fetch moods");
 
       const moods = await res.json();
-      const moodData = moods.find((m: any) => m.mood === decodeURIComponent(slug as string));
+      const moodData = moods.find(
+        (m: any) => m.mood === decodeURIComponent(slug as string)
+      );
+      if (!moodData) return router.push("/404");
 
-      if (!moodData) {
-        router.push("/404");
-        return;
-      }
-
-      // ✅ อ่าน subfeelings จาก sessionStorage แทน query string
       const stored = sessionStorage.getItem("subfeelings");
+      if (!stored) return router.push("/mood/pre-question");
+
       let parsedSubs: string[] = [];
-      let bestMatchBook = null;
-
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed)) {
-            parsedSubs = parsed;
-          } else {
-            throw new Error("subfeelings is not an array");
-          }
-
-          const scoredBooks = moodData.books
-            .map((b: any) => {
-              const matched = b.matchSubfeelings?.filter((s: string) =>
-                parsedSubs.includes(s)
-              ) || [];
-              return { ...b, matchCount: matched.length, matchedSubs: matched };
-            })
-            .filter((b: any) => b.matchCount > 0)
-            .sort((a: { matchCount: number; }, b: { matchCount: number; }) => b.matchCount - a.matchCount);
-
-          if (scoredBooks.length > 0) {
-            bestMatchBook = scoredBooks[0];
-            setMatchedSubs(scoredBooks[0].matchedSubs || []);
-          }
-        } catch (e) {
-          console.warn("Error parsing subfeelings:", e);
-          router.push("/mood/pre-question");
-          return;
-        }
-      } else {
-        // ⛔ ถ้าไม่มี sessionStorage ให้กลับไปเริ่มใหม่
-        router.push("/mood/pre-question");
-        return;
+      try {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) parsedSubs = parsed;
+      } catch {
+        return router.push("/mood/pre-question");
       }
 
-      const fallbackBook = moodData.books[Math.floor(Math.random() * moodData.books.length)];
+      const scoredBooks = moodData.books
+        .map((b: any) => {
+          const matched =
+            b.matchSubfeelings?.filter((s: string) => parsedSubs.includes(s)) ||
+            [];
+          return { ...b, matchCount: matched.length, matchedSubs: matched };
+        })
+        .filter((b: any) => b.matchCount > 0)
+        .sort((a, b) => b.matchCount - a.matchCount);
 
-      setTimeout(() => {
-        setMood(moodData);
-        setBook(bestMatchBook || fallbackBook);
-        setLoading(false);
-      }, 1500);
-    } catch (error) {
-      console.error("Error fetching mood:", error);
+      const bestBook =
+        scoredBooks[0] ||
+        moodData.books[Math.floor(Math.random() * moodData.books.length)];
+      setMood(moodData);
+      setBook(bestBook);
+      setMatchedSubs(bestBook.matchedSubs || []);
+      setLoading(false);
+    } catch (err) {
+      console.error("Error fetching mood:", err);
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    if (!loading && mood?.quote && mood?.quoteLineTwo) {
+      let quoteIndex = 0;
+      let lineTwoIndex = 0;
+
+      const quoteInterval = setInterval(() => {
+        setTypedQuote(mood.quote.slice(0, quoteIndex + 1));
+        quoteIndex++;
+        if (quoteIndex >= mood.quote.length) {
+          clearInterval(quoteInterval);
+          setTimeout(() => {
+            const lineTwoInterval = setInterval(() => {
+              setTypedLineTwo(mood.quoteLineTwo.slice(0, lineTwoIndex + 1));
+              lineTwoIndex++;
+              if (lineTwoIndex >= mood.quoteLineTwo.length) {
+                clearInterval(lineTwoInterval);
+              }
+            }, 30);
+          }, 400);
+        }
+      }, 30);
+    }
+  }, [loading, mood]);
+
+  useEffect(() => {
     if (!loading && mood && book) {
       const timer = setTimeout(() => {
         setShowIntroQuote(false);
-      }, 3000);
+      }, 3500);
       return () => clearTimeout(timer);
     }
   }, [loading, mood, book]);
@@ -114,7 +122,6 @@ const MoodPage = () => {
 
   const handleNativeShare = async () => {
     if (!navigator.share) return alert("เบราว์เซอร์ไม่รองรับการแชร์นี้");
-
     try {
       await navigator.share({
         title: `อารมณ์ "${mood.mood}"`,
@@ -126,25 +133,69 @@ const MoodPage = () => {
     }
   };
 
-  if (loading || !mood || !book) {
-    return <MoodLoading />;
-  }
+  const handleCaptureStory = async () => {
+    const el = storyCaptureRef.current;
+    if (!el) return;
+
+    el.style.opacity = "1";
+    el.style.visibility = "visible";
+    el.style.zIndex = "9999";
+    el.style.pointerEvents = "auto";
+
+    const imgs = el.querySelectorAll("img");
+    await Promise.all(
+      Array.from(imgs).map((img) =>
+        img.complete
+          ? Promise.resolve()
+          : new Promise((resolve) => {
+            img.onload = resolve;
+            img.onerror = resolve;
+          })
+      )
+    );
+
+    try {
+      const dataUrl = await htmlToImage.toPng(el, {
+        cacheBust: true,
+        backgroundColor: "#ffffff",
+      });
+
+      const link = document.createElement("a");
+      link.href = dataUrl;
+      link.download = `chidahp-story-${book.title}.png`;
+      link.click();
+
+      setTimeout(() => setShowShareModal(true), 300);
+    } catch (err) {
+      console.error("แคปภาพไม่สำเร็จ:", err);
+    }
+
+    el.style.opacity = "0"; // 👈 ปิดแบบไม่มีแว้บ
+    el.style.visibility = "hidden";
+    el.style.zIndex = "-1";
+    el.style.pointerEvents = "none";
+  };
+
+
+
+  if (loading || !mood || !book) return <MoodLoading />;
 
   if (showIntroQuote) {
     return (
-      <div className={`min-h-screen flex items-center justify-center px-4 py-12 ${mood.gradient}`}>
+      <div
+        className={`min-h-screen flex items-center justify-center px-4 py-12 ${mood.gradient}`}
+      >
         <motion.div
           className="max-w-xl text-center text-white"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
           transition={{ duration: 1 }}
         >
-          <h1 className="text-2xl md:text-4xl font-semibold mb-2">
-            “{mood?.quote}”
+          <h1 className="text-2xl md:text-4xl font-semibold mb-0 min-h-[2.5rem] leading-tight">
+            {typedQuote || <span className="opacity-0">...</span>}
           </h1>
-          <p className="text-base md:text-lg text-white text-opacity-80">
-            {mood?.quoteLineTwo}
+          <p className="text-base md:text-lg text-white text-opacity-80 min-h-[1.8rem] leading-snug">
+            {typedLineTwo || <span className="opacity-0">...</span>}
           </p>
         </motion.div>
       </div>
@@ -152,7 +203,9 @@ const MoodPage = () => {
   }
 
   return (
-    <div className={`min-h-screen flex items-center justify-center px-4 py-12 ${mood.gradient}`}>
+    <div
+      className={`min-h-screen flex items-center justify-center px-4 py-12 ${mood.gradient}`}
+    >
       <AnimatePresence>
         <motion.div
           className="max-w-xl w-full text-center text-white"
@@ -162,9 +215,9 @@ const MoodPage = () => {
         >
           <motion.div
             className="text-7xl"
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.3 }}
+            initial={{ y: -10, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.1, type: "spring", stiffness: 120 }}
           >
             {mood.emoji}
           </motion.div>
@@ -173,9 +226,10 @@ const MoodPage = () => {
             {mood.mood}
           </motion.h1>
           <p className="mt-2 text-white text-opacity-80">
-            อารมณ์นี้ เหมาะกับเล่มนี้สุดๆ
+            เล่มนี้น่าจะพูดแทนใจคุณได้ดีที่สุด
           </p>
 
+          {/* 🌈 กล่องโชว์จริง */}
           <motion.div
             key={book.title}
             className="bg-white text-black rounded-xl shadow-2xl p-6 mt-10 flex items-center flex-col max-w-md mx-auto"
@@ -194,12 +248,16 @@ const MoodPage = () => {
             )}
 
             <h2 className="text-xl font-bold text-center mb-1">{book.title}</h2>
-            <p className="text-sm text-gray-600 text-center">{book.description}</p>
+            <p className="text-sm text-gray-600 text-center">
+              {book.description}
+            </p>
             <p className="text-xs text-gray-400 mt-2">โดย {book.author}</p>
 
             {matchedSubs.length > 0 && (
               <div className="mt-4 text-xs text-gray-500 text-left w-full">
-                <div className="mb-1 font-semibold">📌 เพราะคุณรู้สึกว่า...</div>
+                <div className="mb-1 font-semibold">
+                  📌 เพราะคุณรู้สึกว่า...
+                </div>
                 <ul className="list-disc list-inside">
                   {matchedSubs.map((s) => (
                     <li key={s}>{s}</li>
@@ -221,9 +279,127 @@ const MoodPage = () => {
             </div>
           </motion.div>
 
+          {/* 🖼 สำหรับแคปภาพแชร์ (ยังไม่ทำการซ่อน) */}
+          <div
+            ref={storyCaptureRef}
+            style={{
+              opacity: 0,
+              position: "absolute", 
+              width: "720px",
+              height: "1280px",
+              background: "linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%)",
+              padding: "80px",
+              boxSizing: "border-box",
+              fontFamily: "'Noto Sans Thai', sans-serif",
+              color: "#000",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "flex-start",
+              visibility: "hidden", // 👈 ซ่อนแบบที่ยังโหลดรูป
+              top: "0",
+              left: "0",
+              pointerEvents: "none",
+            }}
+          >
+            {/* 🪄 Header */}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                width: "100%",
+                alignItems: "center",
+                marginBottom: "24px",
+              }}
+            >
+              <div style={{ fontSize: "28px", fontWeight: "600", display: "flex", alignItems: "center", gap: "10px" }}>
+                {mood.emoji} {mood.mood}
+              </div>
+              <img src="/logo/chidahp-logo.png" alt="logo" width={50} />
+            </div>
+
+            {/* 📚 Book Cover */}
+            <img
+              src={book.cover}
+              alt={book.title}
+              width="360"
+              height="480"
+              style={{
+                borderRadius: "16px",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
+                marginBottom: "24px",
+              }}
+            />
+
+            {/* 📖 Book Info */}
+            <h2 style={{ fontSize: "26px", fontWeight: "bold", textAlign: "center", marginBottom: "4px" }}>{book.title}</h2>
+            <p style={{ fontSize: "16px", color: "#555", textAlign: "center" }}>{book.description}</p>
+            <p style={{ fontSize: "14px", color: "#888", marginTop: "4px", marginBottom: "20px" }}>โดย {book.author}</p>
+
+
+            {/* 🧠 Feeling section */}
+            {matchedSubs.length > 0 && (
+              <div
+                style={{
+                  marginTop: "48px",
+                  textAlign: "center",
+                  maxWidth: "640px",
+                  padding: "0 32px",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: "32px",           // ใหญ่ขึ้นชัดๆ
+                    fontWeight: "700",
+                    marginBottom: "24px",
+                    color: "#111",
+                  }}
+                >
+                  📌 เพราะคุณรู้สึกว่า...
+                </div>
+
+                <ul
+                  style={{
+                    listStyle: "none",
+                    padding: 0,
+                    margin: 0,
+                    fontSize: "50px",          // ข้อความความรู้สึกก็ใหญ่
+                    lineHeight: "1.6",
+                    color: "#222",
+                  }}
+                >
+                  {matchedSubs.map((s) => (
+                    <li key={s} style={{ marginBottom: "12px" }}>
+                      “{s}”
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* 🏷️ Footer */}
+            <div style={{
+              fontSize: "16px",
+              color: "#999",
+              fontWeight: 500,
+              marginTop: "auto",
+              textAlign: "center",
+            }}>
+              #ชี้ดาบเลือกให้
+            </div>
+          </div>
+
+
+          {/* 🧩 ปุ่ม */}
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <button
-              onClick={fetchMood}
+              onClick={handleCaptureStory}
+              className="bg-pink-300 hover:bg-pink-400 text-black px-4 py-2 rounded-full text-sm transition"
+            >
+              📷 แคปเป็นรูป Story IG
+            </button>
+            <button
+              onClick={handleCaptureStory}
               className="bg-white bg-opacity-20 hover:bg-opacity-30 text-black px-4 py-2 rounded-full text-sm transition"
             >
               🎲 เปลี่ยนใจ ขออีกเล่ม!
@@ -249,8 +425,29 @@ const MoodPage = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
             >
-              ✅ คัดลอกลิงก์แล้ว! ส่งให้เพื่อนได้เลย
+              ✅ คัดลอกลิงก์แล้ว!
             </motion.div>
+          )}
+
+          {/* ✅ Modal แจ้งเตือน */}
+          {showShareModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[10000]">
+              <div className="bg-white text-black rounded-xl p-6 max-w-sm w-full text-center shadow-lg">
+                <h2 className="text-lg font-semibold mb-2">ดาวน์โหลดภาพเรียบร้อย! 🎉</h2>
+                <p className="text-sm text-gray-700 mb-4">
+                  ไปที่ Instagram แล้วโพสต์ภาพนี้ลง Story ได้เลยนะ!
+                </p>
+                <p className="text-sm text-gray-700 mb-4">
+                  อย่าลืมแท็ก <strong>@chidahp</strong> และใช้แฮชแท็ก <strong>#ชี้ดาบแนะนำ</strong> ด้วยนะ 💛
+                </p>
+                <button
+                  onClick={() => setShowShareModal(false)}
+                  className="mt-2 bg-black text-white px-4 py-2 rounded-full text-sm hover:opacity-90 transition"
+                >
+                  ปิดหน้าต่าง
+                </button>
+              </div>
+            </div>
           )}
         </motion.div>
       </AnimatePresence>
