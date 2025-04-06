@@ -69,7 +69,6 @@ export default function PreQuestionFlow({ questions }: { questions: Question[] }
           Object.entries(map).sort((a, b) => b[1] - a[1])[0][0];
 
         const finalMood = mostFrequent(countBy("mood"));
-        const finalSub = mostFrequent(countBy("subfeeling"));
 
         router.push(`/mood/choose-mood?mood=${finalMood}&sub=${encodeURIComponent(JSON.stringify(subfeelings))}`);
       }
