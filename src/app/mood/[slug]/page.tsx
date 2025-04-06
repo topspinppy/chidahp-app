@@ -13,6 +13,7 @@ const MoodPage = () => {
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showIntroQuote, setShowIntroQuote] = useState(true);
+
   const router = useRouter();
   const params = useParams();
   const slug = params.slug;
@@ -26,6 +27,7 @@ const MoodPage = () => {
   const fetchMood = async () => {
     try {
       setLoading(true);
+
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/moods`,
         {
@@ -44,12 +46,28 @@ const MoodPage = () => {
         return;
       }
 
-      const randomBook =
+      // ดึง subfeeling จาก query string
+      const searchParams = new URLSearchParams(window.location.search);
+      const subFromQuery = searchParams.get("sub");
+
+      let bestMatchBook = null;
+
+      if (subFromQuery) {
+        const subLower = subFromQuery.toLowerCase();
+
+        bestMatchBook = moodData.books.find((b: any) =>
+          b.matchSubfeelings?.some((s: string) =>
+            s.toLowerCase().includes(subLower)
+          )
+        );
+      }
+
+      const fallbackBook =
         moodData.books[Math.floor(Math.random() * moodData.books.length)];
 
       setTimeout(() => {
         setMood(moodData);
-        setBook(randomBook);
+        setBook(bestMatchBook || fallbackBook);
         setLoading(false);
       }, 1500);
     } catch (error) {
@@ -58,7 +76,6 @@ const MoodPage = () => {
     }
   };
 
-  // ✅ แสดง quote เจ็บๆ ก่อนเข้าเนื้อหา
   useEffect(() => {
     if (!loading && mood && book) {
       const timer = setTimeout(() => {
@@ -95,12 +112,9 @@ const MoodPage = () => {
     return <MoodLoading />;
   }
 
-  // ✅ ส่วนนี้แสดง Quote Intro ก่อนหนังสือ
   if (showIntroQuote) {
     return (
-      <div
-        className={`min-h-screen flex items-center justify-center px-4 py-12 ${mood.gradient}`}
-      >
+      <div className={`min-h-screen flex items-center justify-center px-4 py-12 ${mood.gradient}`}>
         <motion.div
           className="max-w-xl text-center text-white"
           initial={{ opacity: 0 }}
@@ -108,7 +122,6 @@ const MoodPage = () => {
           exit={{ opacity: 0 }}
           transition={{ duration: 1 }}
         >
-          {/* <div className="text-6xl mb-4">{mood.emoji}</div> */}
           <h1 className="text-2xl md:text-4xl font-semibold mb-2">
             “{mood?.quote}”
           </h1>
@@ -121,9 +134,7 @@ const MoodPage = () => {
   }
 
   return (
-    <div
-      className={`min-h-screen flex items-center justify-center px-4 py-12 ${mood.gradient}`}
-    >
+    <div className={`min-h-screen flex items-center justify-center px-4 py-12 ${mood.gradient}`}>
       <AnimatePresence>
         <motion.div
           className="max-w-xl w-full text-center text-white"
@@ -131,7 +142,6 @@ const MoodPage = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
         >
-          {/* Emoji */}
           <motion.div
             className="text-7xl"
             initial={{ scale: 0 }}
@@ -148,7 +158,6 @@ const MoodPage = () => {
             อารมณ์นี้ เหมาะกับเล่มนี้สุดๆ
           </p>
 
-          {/* Book Card */}
           <motion.div
             key={book.title}
             className="bg-white text-black rounded-xl shadow-2xl p-6 mt-10 flex items-center flex-col max-w-md mx-auto"
@@ -156,7 +165,6 @@ const MoodPage = () => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.6 }}
           >
-            {/* Book Cover */}
             {book.cover && (
               <Image
                 src={book.cover}
@@ -167,25 +175,16 @@ const MoodPage = () => {
               />
             )}
 
-            {/* Tagline */}
             {book.tagline && (
               <p className="italic text-sm text-gray-700 text-center mb-4">
                 “{book.tagline}”
               </p>
             )}
 
-            {/* Title */}
             <h2 className="text-xl font-bold text-center mb-1">{book.title}</h2>
-
-            {/* Description */}
-            <p className="text-sm text-gray-600 text-center">
-              {book.description}
-            </p>
-
-            {/* Author */}
+            <p className="text-sm text-gray-600 text-center">{book.description}</p>
             <p className="text-xs text-gray-400 mt-2">โดย {book.author}</p>
 
-            {/* CTA */}
             <a
               href={book.link}
               target="_blank"
@@ -194,13 +193,11 @@ const MoodPage = () => {
               📚 อ่านเล่มนี้เลย
             </a>
 
-            {/* Branding Footer (optional) */}
             <div className="text-[10px] text-gray-400 mt-5">
               📘 แนะนำโดย Chidahp – อารมณ์ {mood.mood}
             </div>
           </motion.div>
 
-          {/* More & Share */}
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <button
               onClick={fetchMood}
@@ -222,7 +219,6 @@ const MoodPage = () => {
             </button>
           </div>
 
-          {/* Toast */}
           {copied && (
             <motion.div
               className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-black text-white text-sm px-4 py-2 rounded-full shadow-lg"

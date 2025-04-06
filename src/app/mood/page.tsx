@@ -16,7 +16,7 @@ export default function IntroPage() {
   const handleStart = () => {
     setShowContent(false);
     setTimeout(() => {
-      router.push("/mood/choose-mood");
+      router.push("/mood/pre-question");
     }, 1000);
   };
 
