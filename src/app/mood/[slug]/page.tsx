@@ -17,6 +17,7 @@ const MoodPage = () => {
   const [matchedSubs, setMatchedSubs] = useState<string[]>([]);
   const [typedQuote, setTypedQuote] = useState("");
   const [showShareModal, setShowShareModal] = useState(false);
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [typedLineTwo, setTypedLineTwo] = useState("");
   const storyCaptureRef = useRef<HTMLDivElement>(null);
 
@@ -26,7 +27,6 @@ const MoodPage = () => {
 
   useEffect(() => {
     if (slug) fetchMood();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug]);
 
   const fetchMood = async () => {
@@ -63,7 +63,7 @@ const MoodPage = () => {
           return { ...b, matchCount: matched.length, matchedSubs: matched };
         })
         .filter((b: any) => b.matchCount > 0)
-        .sort((a: { matchCount: number; }, b: { matchCount: number; }) => b.matchCount - a.matchCount);
+        .sort((a, b) => b.matchCount - a.matchCount);
 
       const bestBook =
         scoredBooks[0] ||
@@ -134,11 +134,12 @@ const MoodPage = () => {
   };
 
   const handleCaptureStory = async () => {
+    setShowShareModal(true);
     const el = storyCaptureRef.current;
     if (!el) return;
 
     el.style.opacity = "1";
-    el.style.visibility = "visible";
+    el.style.display = "flex";
     el.style.zIndex = "9999";
     el.style.pointerEvents = "auto";
 
@@ -159,24 +160,21 @@ const MoodPage = () => {
         cacheBust: true,
         backgroundColor: "#ffffff",
       });
+      setCapturedImage(dataUrl);
 
       const link = document.createElement("a");
       link.href = dataUrl;
       link.download = `chidahp-story-${book.title}.png`;
       link.click();
-
-      setTimeout(() => setShowShareModal(true), 300);
     } catch (err) {
       console.error("แคปภาพไม่สำเร็จ:", err);
     }
 
     el.style.opacity = "0"; // 👈 ปิดแบบไม่มีแว้บ
-    el.style.visibility = "hidden";
+    el.style.display = "none";
     el.style.zIndex = "-1";
     el.style.pointerEvents = "none";
   };
-
-
 
   if (loading || !mood || !book) return <MoodLoading />;
 
@@ -284,7 +282,7 @@ const MoodPage = () => {
             ref={storyCaptureRef}
             style={{
               opacity: 0,
-              position: "absolute", 
+              position: "absolute",
               width: "720px",
               height: "1280px",
               background: "linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%)",
@@ -292,11 +290,12 @@ const MoodPage = () => {
               boxSizing: "border-box",
               fontFamily: "'Noto Sans Thai', sans-serif",
               color: "#000",
-              display: "flex",
+              display: "none",
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "flex-start",
-              visibility: "hidden", // 👈 ซ่อนแบบที่ยังโหลดรูป
+              // visibility: "hidden", // 👈 ซ่อนแบบที่ยังโหลดรูป
+              // position: "fixed",
               top: "0",
               left: "0",
               pointerEvents: "none",
@@ -312,7 +311,15 @@ const MoodPage = () => {
                 marginBottom: "24px",
               }}
             >
-              <div style={{ fontSize: "28px", fontWeight: "600", display: "flex", alignItems: "center", gap: "10px" }}>
+              <div
+                style={{
+                  fontSize: "28px",
+                  fontWeight: "600",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                }}
+              >
                 {mood.emoji} {mood.mood}
               </div>
               <img src="/logo/chidahp-logo.png" alt="logo" width={50} />
@@ -332,10 +339,29 @@ const MoodPage = () => {
             />
 
             {/* 📖 Book Info */}
-            <h2 style={{ fontSize: "26px", fontWeight: "bold", textAlign: "center", marginBottom: "4px" }}>{book.title}</h2>
-            <p style={{ fontSize: "16px", color: "#555", textAlign: "center" }}>{book.description}</p>
-            <p style={{ fontSize: "14px", color: "#888", marginTop: "4px", marginBottom: "20px" }}>โดย {book.author}</p>
-
+            <h2
+              style={{
+                fontSize: "26px",
+                fontWeight: "bold",
+                textAlign: "center",
+                marginBottom: "4px",
+              }}
+            >
+              {book.title}
+            </h2>
+            <p style={{ fontSize: "16px", color: "#555", textAlign: "center" }}>
+              {book.description}
+            </p>
+            <p
+              style={{
+                fontSize: "14px",
+                color: "#888",
+                marginTop: "4px",
+                marginBottom: "20px",
+              }}
+            >
+              โดย {book.author}
+            </p>
 
             {/* 🧠 Feeling section */}
             {matchedSubs.length > 0 && (
@@ -349,7 +375,7 @@ const MoodPage = () => {
               >
                 <div
                   style={{
-                    fontSize: "32px",           // ใหญ่ขึ้นชัดๆ
+                    fontSize: "32px", // ใหญ่ขึ้นชัดๆ
                     fontWeight: "700",
                     marginBottom: "24px",
                     color: "#111",
@@ -363,7 +389,7 @@ const MoodPage = () => {
                     listStyle: "none",
                     padding: 0,
                     margin: 0,
-                    fontSize: "50px",          // ข้อความความรู้สึกก็ใหญ่
+                    fontSize: "50px", // ข้อความความรู้สึกก็ใหญ่
                     lineHeight: "1.6",
                     color: "#222",
                   }}
@@ -378,17 +404,18 @@ const MoodPage = () => {
             )}
 
             {/* 🏷️ Footer */}
-            <div style={{
-              fontSize: "16px",
-              color: "#999",
-              fontWeight: 500,
-              marginTop: "auto",
-              textAlign: "center",
-            }}>
+            <div
+              style={{
+                fontSize: "16px",
+                color: "#999",
+                fontWeight: 500,
+                marginTop: "auto",
+                textAlign: "center",
+              }}
+            >
               #ชี้ดาบเลือกให้
             </div>
           </div>
-
 
           {/* 🧩 ปุ่ม */}
           <div className="mt-6 flex flex-wrap justify-center gap-3">
@@ -429,26 +456,45 @@ const MoodPage = () => {
             </motion.div>
           )}
 
-          {/* ✅ Modal แจ้งเตือน */}
-          {showShareModal && (
-            <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[10000]">
-              <div className="bg-white text-black rounded-xl p-6 max-w-sm w-full text-center shadow-lg">
-                <h2 className="text-lg font-semibold mb-2">ดาวน์โหลดภาพเรียบร้อย! 🎉</h2>
-                <p className="text-sm text-gray-700 mb-4">
-                  ไปที่ Instagram แล้วโพสต์ภาพนี้ลง Story ได้เลยนะ!
+          {/* ✅ Modal Preview */}
+          {showShareModal && capturedImage && (
+            <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[10000] px-4">
+              <div className="bg-white text-black rounded-xl p-5 max-w-sm w-full text-center shadow-xl">
+                <h2 className="text-lg font-semibold mb-3">
+                  📸 ดาวน์โหลดภาพเรียบร้อยแล้ว!
+                </h2>
+
+                <p className="text-sm text-gray-700 mb-2">
+                  สำหรับ <strong>iOS</strong> แนะนำให้{" "}
+                  <strong>กดที่ภาพด้านล่างค้างไว้ แล้วเลือก "บันทึกรูปภาพ"</strong> เพื่อเก็บไว้ในเครื่อง
                 </p>
-                <p className="text-sm text-gray-700 mb-4">
-                  อย่าลืมแท็ก <strong>@chidahp</strong> และใช้แฮชแท็ก <strong>#ชี้ดาบแนะนำ</strong> ด้วยนะ 💛
+
+                <p className="text-sm text-gray-700 mb-2">
+                  สำหรับ <strong>Android / คอมพิวเตอร์</strong> ระบบจะดาวน์โหลดภาพให้อัตโนมัติ หรือคุณสามารถกดที่ภาพเพื่อบันทึกได้เช่นกัน
                 </p>
+
+                <p className="text-sm text-gray-700 mb-4">
+                  หลังจากนั้นสามารถแชร์ลง IG Story ได้เลย 💫 <br />
+                  อย่าลืมแท็ก <strong>@chidahp</strong> และติดแฮชแท็ก{" "}
+                  <strong>#ชี้ดาบแนะนำ</strong> ด้วยนะค้าบ 💛
+                </p>
+
+                <img
+                  src={capturedImage}
+                  alt="preview"
+                  className="rounded-lg mb-4 shadow cursor-pointer"
+                />
+
                 <button
                   onClick={() => setShowShareModal(false)}
-                  className="mt-2 bg-black text-white px-4 py-2 rounded-full text-sm hover:opacity-90 transition"
+                  className="bg-black text-white px-4 py-2 rounded-full text-sm"
                 >
                   ปิดหน้าต่าง
                 </button>
               </div>
             </div>
           )}
+
         </motion.div>
       </AnimatePresence>
     </div>
