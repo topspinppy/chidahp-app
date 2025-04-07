@@ -52,34 +52,37 @@ export default function PreQuestionFlow({ questions }: { questions: Question[] }
     setTimeout(() => {
       setShowReaction(false);
       setSelectedText(null);
-
+    
       if (step < totalSteps - 1) {
         setStep(step + 1);
       } else {
-        // ✅ นับ mood และ subfeeling ทั้งหมด
+        // ✅ เก็บ mood และ subfeeling ที่ user เลือกทั้งหมด
         const countBy = (key: "mood" | "subfeeling") =>
           updatedAnswers.reduce((acc, curr) => {
             const k = curr[key];
             acc[k] = (acc[k] || 0) + 1;
             return acc;
           }, {} as Record<string, number>);
-
+    
         const topNFrequent = (map: Record<string, number>, n: number) =>
           Object.entries(map)
             .sort((a, b) => b[1] - a[1])
             .slice(0, n)
             .map(([key]) => key);
-
+    
         const topMoods = topNFrequent(countBy("mood"), 3);
-        const allSubfeelings = updatedAnswers.map((a) => a.subfeeling);
-
-        // ✅ เก็บ subfeelings ลง sessionStorage
-        sessionStorage.setItem("subfeelings", JSON.stringify(allSubfeelings));
-
-        // ✅ ไป choose-mood page โดยไม่ต้องส่ง sub ผ่าน query string
-        router.push(`/mood/choose-mood?moods=${encodeURIComponent(JSON.stringify(topMoods))}`);
+        const topSubfeelings = topNFrequent(countBy("subfeeling"), 5);
+    
+        // ✅ เก็บทุกอย่างไว้ใน sessionStorage เพื่อใช้หน้าต่อไป
+        sessionStorage.setItem("topMoods", JSON.stringify(topMoods));
+        sessionStorage.setItem("topSubfeelings", JSON.stringify(topSubfeelings));
+        sessionStorage.setItem("fullAnswers", JSON.stringify(updatedAnswers));
+    
+        // ✅ ไปหน้าผลลัพธ์เลย
+        router.push("/mood/recommend/intent");
       }
     }, 1400);
+    
   };
 
   const progressPercent = ((step + 1) / totalSteps) * 100;

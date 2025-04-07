@@ -1,21 +1,21 @@
 // app/cardtel/page.tsx (ถ้าใช้ App Router)
 export const dynamic = 'force-dynamic'; // 👈 สำคัญ
 
-import MoodDisplay from "./MoodDisplay";
+import IntentPage from "./IntentPage";
 
-// ใช้ fetch แทน axios
-async function fetchMoods() {
-  try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/moods`, {
-      cache: 'no-store',
-    });
-    if (!res.ok) throw new Error('Failed to fetch moods');
-    return await res.json();
-  } catch (error) {
-    console.error('Error fetching moods:', error);
-    throw new Error('Failed to fetch moods');
-  }
-}
+// // ใช้ fetch แทน axios
+// async function fetchMoods() {
+//   try {
+//     const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/moods`, {
+//       cache: 'no-store',
+//     });
+//     if (!res.ok) throw new Error('Failed to fetch moods');
+//     return await res.json();
+//   } catch (error) {
+//     console.error('Error fetching moods:', error);
+//     throw new Error('Failed to fetch moods');
+//   }
+// }
 
 // Metadata แบบ App Router
 export const metadata = {
@@ -25,6 +25,6 @@ export const metadata = {
 
 // Main component
 export default async function CardTel() {
-  const moods = await fetchMoods();
-  return <MoodDisplay moods={moods} />;
+  // const moods = await fetchMoods();
+  return <IntentPage />;
 }

@@ -3,8 +3,19 @@
 /* Import the font.css from the public directory */
 @import url("/font/font.css");
 
-@theme {
-  --font-primary: "Anakotmai-light";
+body {
+  font-family: var(--font-noto-sans-thai), sans-serif;
+}
+
+@keyframes backgroundFade {
+  0% { background-position: 0% 50% }
+  50% { background-position: 100% 50% }
+  100% { background-position: 0% 50% }
+}
+
+.animate-backgroundFade {
+  background-size: 400% 400%;
+  animation: backgroundFade 15s ease infinite;
 }
 
 @keyframes fadeIn {
