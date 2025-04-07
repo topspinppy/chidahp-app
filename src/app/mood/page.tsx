@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Image from "next/image"; // อย่าลืม import ด้วยนะค้าบ
+import Image from "next/image";
 
 export default function IntroPage() {
   const router = useRouter();
@@ -21,21 +21,21 @@ export default function IntroPage() {
   };
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden font-primary">
-      {/* --- BACKGROUND --- */}
-      <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 via-orange-400 to-red-500 opacity-80 backdrop-blur-sm"></div>
+    <div className="relative min-h-screen w-full overflow-hidden font-primary bg-black">
+      {/* --- BACKGROUND GRADIENT --- */}
+      <div className="absolute inset-0 bg-gradient-to-r from-yellow-500 via-yellow-600 to-yellow-700 opacity-60 backdrop-blur-sm z-0"></div>
 
-      {/* --- CONTENT --- */}
+      {/* --- MAIN CONTENT --- */}
       <AnimatePresence>
         {showContent && (
           <motion.div
-            className="relative flex flex-col items-center justify-center min-h-screen text-center px-4"
+            className="relative flex flex-col items-center justify-center min-h-screen text-center px-4 z-20"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 1 }}
           >
-            {/* โลโก้ชี้ดาบด้านบน */}
+            {/* โลโก้ชี้ดาบ */}
             <motion.div
               initial={{ opacity: 0, scale: 0.7 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -43,7 +43,7 @@ export default function IntroPage() {
               className="mb-8"
             >
               <Image
-                src="/logo/chidahp-logo.png" // เปลี่ยนเป็น path ที่ถูกต้องของคุณ
+                src="/logo/chidahp-logo.png" // อย่าลืมใส่รูปโลโก้ให้ตรง path นะค้าบ
                 alt="ชี้ดาบโลโก้"
                 width={120}
                 height={120}
@@ -51,14 +51,14 @@ export default function IntroPage() {
               />
             </motion.div>
 
-            {/* ข้อความ Quote */}
+            {/* ข้อความ */}
             <motion.h1
               className="text-3xl md:text-5xl font-bold text-white mb-4 drop-shadow-lg"
               initial={{ y: -50 }}
               animate={{ y: 0 }}
               transition={{ duration: 1 }}
             >
-              เราอาจไม่รู้ว่าคุณกำลังรู้สึกอะไร...
+              ไม่ต้องบอกเราว่าคุณรู้สึกยังไง...
             </motion.h1>
 
             <motion.p
@@ -67,18 +67,18 @@ export default function IntroPage() {
               animate={{ y: 0 }}
               transition={{ duration: 1 }}
             >
-              แต่เรามีเล่มนึงที่อาจเข้าใจคุณมากกว่าที่คุณคิด
+              แค่ตอบคำถามไม่กี่ข้อ แล้วปล่อยให้เราเดาใจคุณเอง
             </motion.p>
 
             {/* ปุ่มเริ่ม */}
             <motion.button
               onClick={handleStart}
-              className="px-8 py-3 bg-white text-black rounded-full text-lg font-semibold hover:bg-yellow-200 transition drop-shadow-md"
+              className="px-8 py-3 bg-yellow-400 text-black rounded-full text-lg font-semibold hover:bg-yellow-300 transition drop-shadow-md"
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ duration: 1, delay: 0.5 }}
             >
-              เริ่มเลือกอารมณ์ของคุณ
+              เริ่มตอบคำถาม
             </motion.button>
           </motion.div>
         )}

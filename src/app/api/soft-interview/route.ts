@@ -1,9 +1,80 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+function getNextQuestionBalanced(
+  allQuestions: any[],
+  answered: { id: string; mood: string }[]
+): any {
+  const usedIds = new Set(answered.map((a) => a.id));
+  const moodCounter: Record<string, number> = {};
+
+  for (const a of answered) {
+    moodCounter[a.mood] = (moodCounter[a.mood] || 0) + 1;
+  }
+
+  const remaining = allQuestions.filter((q) => !usedIds.has(q.id));
+
+  // กรอง: mood ซ้ำไม่เกิน 2 ครั้ง
+  const moodSafe = remaining.filter((q) =>
+    q.choices.some((c: any) => (moodCounter[c.mood] || 0) < 2)
+  );
+
+  const filtered = moodSafe.length > 0 ? moodSafe : remaining;
+
+  // สุ่มแบบ weighted
+  const expanded = filtered.flatMap((q) => Array(q.weight).fill(q));
+  return expanded[Math.floor(Math.random() * expanded.length)];
+}
+
+function getInitialQuestion(allQuestions: any[]): any {
+  const expanded = allQuestions.flatMap((q) => Array(q.weight).fill(q));
+  return expanded[Math.floor(Math.random() * expanded.length)];
+}
+
+function getQuestionSequenceBalancedWithEnding(allQuestions: any[], count: number): any[] {
+  const result: any[] = [];
+  const usedIds = new Set<string>();
+
+  const endingCandidates = allQuestions.filter((q) =>
+    ["q6", "q8", "q10"].includes(q.id)
+  );
+
+  // 🔁 ลบ ending ออกจากชุด shuffle ก่อน
+  const questionPool = allQuestions.filter((q) => !endingCandidates.includes(q));
+
+  // เริ่มจากคำถามแรก
+  const first = getInitialQuestion(questionPool);
+  result.push(first);
+  usedIds.add(first.id);
+
+  while (result.length < count - 1) {
+    const next = getNextQuestionBalanced(questionPool, result);
+    if (!usedIds.has(next.id)) {
+      result.push(next);
+      usedIds.add(next.id);
+    }
+  }
+
+  // ✅ สุ่มคำถามปิดท้ายจาก ending set
+  const ending = endingCandidates[Math.floor(Math.random() * endingCandidates.length)];
+  if (!usedIds.has(ending.id)) {
+    result.push(ending);
+  } else {
+    // fallback เผื่อ ending ซ้ำ
+    const fallback = questionPool.find((q) => !usedIds.has(q.id));
+    if (fallback) result.push(fallback);
+  }
+
+  return result;
+}
+
+
+
 export async function GET() {
   const allQuestions = [
     {
       id: "q1",
       question: "ช่วงนี้ความรู้สึกคุณใกล้กับสิ่งไหนมากที่สุด?",
       allowCustom: true,
+      weight: 3,
       placeholder: "พิมพ์ความรู้สึกของคุณ...",
       choices: [
         {
@@ -41,6 +112,7 @@ export async function GET() {
     {
       id: "q2",
       question: "ถ้าได้หยุดไปที่ไหนก็ได้ตอนนี้ คุณอยากไปเพื่ออะไร?",
+      weight: 3,
       allowCustom: true,
       placeholder: "พิมพ์ความรู้สึกของคุณ...",
       choices: [
@@ -79,6 +151,7 @@ export async function GET() {
     {
       id: "q3",
       question: "คุณรู้สึกยังไงกับคำว่า 'เปลี่ยนแปลง' ในตอนนี้?",
+      weight: 4,
       allowCustom: true,
       placeholder: "พิมพ์ความรู้สึกของคุณ...",
       choices: [
@@ -117,6 +190,7 @@ export async function GET() {
     {
       id: "q4",
       question: "สิ่งที่คุณคิดถึงมากที่สุดตอนนี้คืออะไร?",
+      weight: 2,
       allowCustom: true,
       placeholder: "พิมพ์สิ่งที่คิดถึง...",
       choices: [
@@ -155,6 +229,7 @@ export async function GET() {
     {
       id: "q5",
       question: "คุณรู้สึกยังไงกับคำว่า ‘อนาคต’ ตอนนี้?",
+      weight: 3,
       allowCustom: true,
       placeholder: "พิมพ์สิ่งที่คุณรู้สึกกับอนาคต...",
       choices: [
@@ -193,6 +268,7 @@ export async function GET() {
     {
       id: "q6",
       question: "ตอนนี้คุณอยากบอกอะไรกับตัวเอง?",
+      weight: 2,
       allowCustom: true,
       placeholder: "เขียนสิ่งที่อยากบอกตัวเอง...",
       choices: [
@@ -231,6 +307,7 @@ export async function GET() {
     {
       id: "q7",
       question: "ในชีวิตตอนนี้ คุณโฟกัสเรื่องไหนมากที่สุด?",
+      weight: 1,
       allowCustom: true,
       placeholder: "สิ่งที่คุณกำลังให้ความสำคัญ...",
       choices: [
@@ -269,6 +346,7 @@ export async function GET() {
     {
       id: "q8",
       question: "ถ้าให้ตั้งชื่อ 'บทนี้ในชีวิตคุณ' จะชื่อว่าอะไร?",
+      weight: 2,
       allowCustom: true,
       placeholder: "ตั้งชื่อบทของคุณเอง...",
       choices: [
@@ -307,6 +385,7 @@ export async function GET() {
     {
       id: "q9",
       question: "ถ้าจะเลือกแนวหนังสือตอนนี้ คุณอยากอ่านแบบไหน?",
+      weight: 2,
       allowCustom: true,
       placeholder: "เลือกแนวที่คุณรู้สึกว่าอยากอ่าน...",
       choices: [
@@ -345,6 +424,7 @@ export async function GET() {
     {
       id: "q10",
       question: "อะไรคือสิ่งที่คุณกำลังพยายามอยู่ในชีวิตตอนนี้?",
+      weight: 1,
       allowCustom: true,
       placeholder: "พิมพ์สิ่งที่คุณกำลังเผชิญอยู่...",
       choices: [
@@ -383,8 +463,6 @@ export async function GET() {
   ];
 
   // 🔄 สุ่มคำถาม 1–2 ข้อ (จากทั้งหมด)
-  const shuffled = [...allQuestions].sort(() => 0.5 - Math.random());
-  const selected = shuffled.slice(0, 8); // อยากได้กี่ข้อ เปลี่ยนตรงนี้
-
+  const selected = getQuestionSequenceBalancedWithEnding(allQuestions, 8);
   return Response.json({ questions: selected });
 }
