@@ -81,8 +81,8 @@ export default function RecommendResult() {
           </h1>
           {mood && (
             <p className="text-lg text-gray-600 italic">
-              จากความรู้สึกว่า <strong className="text-indigo-700">"{mood}"</strong> <br />
-              และสิ่งที่คุณต้องการคือ <strong className="text-indigo-700">"{intent}"</strong>
+              จากความรู้สึกว่า <strong className="text-indigo-700">{`"${mood}"`}</strong> <br />
+              และสิ่งที่คุณต้องการคือ <strong className="text-indigo-700">{`"${intent}"`}</strong>
             </p>
           )}
           <p className="mt-4 text-xl text-gray-700 font-medium">{caption}</p>
