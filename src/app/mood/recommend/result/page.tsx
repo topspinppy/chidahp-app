@@ -11,7 +11,8 @@ export default function RecommendResult() {
   const [isLoading, setIsLoading] = useState(true);
   const [topMood, setTopMood] = useState<string | null>(null);
   const [intent, setIntent] = useState<string | null>(null);
-  const [subfeelings, setSubfeelings] = useState<string[]>([]);
+  const [, setSubfeelings] = useState<string[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [books, setBooks] = useState<any[]>([]);
   const [caption, setCaption] = useState<string>("");
   const [insightLines, setInsightLines] = useState<string[]>([]);
@@ -85,6 +86,7 @@ export default function RecommendResult() {
 
     const safeMatch = (arr?: string[]) => Array.isArray(arr) ? arr : [];
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const matchedBooks = moodObj.books.filter((book: any) =>
       safeMatch(book.matchSubfeelings).some((sf: string) =>
         subs.some((userSf: string) => sf.toLowerCase() === userSf.toLowerCase())
@@ -93,6 +95,7 @@ export default function RecommendResult() {
 
     setBooks(matchedBooks.length > 0 ? matchedBooks : moodObj.books);
     setTimeout(() => setIsLoading(false), 1800);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
 
   if (isLoading) return <MoodLoading />;
