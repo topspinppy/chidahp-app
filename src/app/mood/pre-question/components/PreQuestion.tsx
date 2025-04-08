@@ -52,44 +52,41 @@ export default function PreQuestionFlow({ questions }: { questions: Question[] }
     setTimeout(() => {
       setShowReaction(false);
       setSelectedText(null);
-    
+
       if (step < totalSteps - 1) {
         setStep(step + 1);
       } else {
-        // ✅ เก็บ mood และ subfeeling ที่ user เลือกทั้งหมด
         const countBy = (key: "mood" | "subfeeling") =>
           updatedAnswers.reduce((acc, curr) => {
             const k = curr[key];
             acc[k] = (acc[k] || 0) + 1;
             return acc;
           }, {} as Record<string, number>);
-    
+
         const topNFrequent = (map: Record<string, number>, n: number) =>
           Object.entries(map)
             .sort((a, b) => b[1] - a[1])
             .slice(0, n)
             .map(([key]) => key);
-    
+
         const topMoods = topNFrequent(countBy("mood"), 3);
         const topSubfeelings = topNFrequent(countBy("subfeeling"), 5);
-    
-        // ✅ เก็บทุกอย่างไว้ใน sessionStorage เพื่อใช้หน้าต่อไป
+        const moodStats = countBy("mood");
+
         sessionStorage.setItem("topMoods", JSON.stringify(topMoods));
         sessionStorage.setItem("topSubfeelings", JSON.stringify(topSubfeelings));
         sessionStorage.setItem("fullAnswers", JSON.stringify(updatedAnswers));
-    
-        // ✅ ไปหน้าผลลัพธ์เลย
+        sessionStorage.setItem("moodStats", JSON.stringify(moodStats));
+
         router.push("/mood/recommend/intent");
       }
     }, 1400);
-    
   };
 
   const progressPercent = ((step + 1) / totalSteps) * 100;
 
   return (
     <div className={`min-h-screen w-full bg-gradient-to-b ${currentMoodColor} transition-all relative flex items-center justify-center`}>
-      {/* Overlay */}
       <AnimatePresence>
         {showReaction && (
           <motion.div
@@ -102,7 +99,6 @@ export default function PreQuestionFlow({ questions }: { questions: Question[] }
         )}
       </AnimatePresence>
 
-      {/* Floating reaction box */}
       <AnimatePresence>
         {showReaction && currentReaction && (
           <motion.div
@@ -120,9 +116,7 @@ export default function PreQuestionFlow({ questions }: { questions: Question[] }
         )}
       </AnimatePresence>
 
-      {/* Main content */}
       <div className="max-w-xl w-full px-4 py-12 text-center relative z-10">
-        {/* Progress bar */}
         <motion.div
           className="w-full h-2 bg-gray-200 rounded-full mb-6 overflow-hidden"
           animate={{ opacity: showReaction ? 0.3 : 1 }}
@@ -135,7 +129,6 @@ export default function PreQuestionFlow({ questions }: { questions: Question[] }
           />
         </motion.div>
 
-        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -144,10 +137,23 @@ export default function PreQuestionFlow({ questions }: { questions: Question[] }
           <h2 className="text-2xl font-semibold mb-2 text-gray-800">
             ขอรู้จักใจคุณอีกนิด...
           </h2>
-          <p className="text-sm text-gray-500 mb-6">
+          <p className="text-sm text-gray-500 mb-4">
             เพื่อให้เราเลือกหนังสือที่ตรงกับคุณที่สุด
           </p>
         </motion.div>
+
+        {/* 💙 NEW! Opening line */}
+        {step === 0 && (
+          <motion.div
+            className="mb-6 text-sm text-indigo-700 italic"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.8 }}
+          >
+            ชี้ดาบคัดมาให้คุณ <strong className="text-indigo-900">8 คำถามจากใจ</strong>... <br />
+            พร้อม <strong className="text-indigo-900">คำถามสุดท้าย</strong>ที่ตรงกับความรู้สึกคุณที่สุด 💙
+          </motion.div>
+        )}
 
         {/* Question */}
         <AnimatePresence mode="wait">

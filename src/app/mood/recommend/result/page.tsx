@@ -1,7 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -13,11 +9,13 @@ import MoodLoading from "../../components/MoodLoading";
 export default function RecommendResult() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
-  const [mood, setMood] = useState<string | null>(null);
+  const [topMood, setTopMood] = useState<string | null>(null);
   const [intent, setIntent] = useState<string | null>(null);
-  const [_, setSubfeelings] = useState<string[]>([]);
+  const [subfeelings, setSubfeelings] = useState<string[]>([]);
   const [books, setBooks] = useState<any[]>([]);
   const [caption, setCaption] = useState<string>("");
+  const [insightLines, setInsightLines] = useState<string[]>([]);
+  const [bgGradient, setBgGradient] = useState("from-gray-50 via-slate-100 to-indigo-100");
 
   const intentCaptionMap: Record<string, string> = {
     "อยากรู้สึกมีกำลังใจขึ้น": "ให้คุณได้กำลังใจกลับไป",
@@ -29,22 +27,60 @@ export default function RecommendResult() {
     "อยากพักใจเฉย ๆ สักนิด": "ให้คุณได้พักอย่างไม่รู้สึกผิด",
   };
 
+  const subfeelingMap: Record<string, string> = {
+    "กลัวเริ่มใหม่แล้วพังอีก": "คุณกลัวจะเจ็บจากความพยายามซ้ำอีกครั้ง",
+    "สูญเสีย": "คุณอาจกำลังคิดถึงบางคนที่ไม่ได้อยู่ตรงนี้แล้ว",
+    "รู้สึกโดดเดี่ยว": "คุณรู้สึกเหมือนความเงียบมันไม่ใช่เพื่อน",
+    "ลังเล ตัดสินใจไม่ได้": "คุณยังไม่แน่ใจว่าจะเลือกทางไหนดี",
+    "ถูกเอาเปรียบ": "คุณรู้สึกว่าโลกยังไม่ยุติธรรมกับคุณ",
+    "อยากหนีจากเสียงรอบตัว": "คุณอยากเงียบเพื่อฟังตัวเอง",
+    "ยังไม่รู้ว่าต้องการอะไร": "คุณยังหาไม่เจอว่าจริงๆ ต้องการอะไร",
+    "หมดแรงกับที่เดิม": "คุณอยากเริ่มใหม่ เพราะที่เดิมมันหมดแรง",
+    "โหยหาการเชื่อมโยง": "คุณอยากมีใครสักคนที่เข้าใจ",
+    "อยากใช้ชีวิตให้คุ้ม": "คุณอยากออกไปใช้ชีวิตให้สุด!",
+    "แบกเยอะเกินไป": "คุณอาจรู้สึกว่าต้องแบกมากเกินไป",
+    "ขาดเป้าหมาย": "คุณยังไม่เห็นภาพปลายทางของตัวเอง",
+    "ไม่มั่นใจในตัวเอง": "คุณอาจสงสัยในคุณค่าของตัวเองอยู่",
+  };
+
+  const moodGradientMap: Record<string, string> = {
+    "เศร้า": "from-slate-100 via-blue-50 to-indigo-100",
+    "หมดไฟ": "from-zinc-100 via-neutral-50 to-rose-100",
+    "สับสน": "from-purple-100 via-indigo-50 to-blue-100",
+    "อยากเข้าใจตัวเอง": "from-emerald-100 via-green-50 to-teal-100",
+    "โกรธโลก": "from-orange-100 via-yellow-50 to-red-100",
+    "เหงา": "from-slate-50 via-gray-100 to-blue-50",
+    "ฮีลใจ": "from-pink-100 via-rose-50 to-red-100",
+    "เฟียซ": "from-yellow-100 via-orange-50 to-red-100",
+    "มั่นใจ": "from-indigo-100 via-violet-50 to-blue-100",
+    "เหนื่อย": "from-gray-200 via-neutral-50 to-white",
+  };
+
   useEffect(() => {
-    const mood = sessionStorage.getItem("finalMood");
-    const intent = sessionStorage.getItem("userIntent");
+    const storedIntent = sessionStorage.getItem("userIntent");
+    const stats = JSON.parse(sessionStorage.getItem("moodStats") || "{}");
     const subs = JSON.parse(sessionStorage.getItem("topSubfeelings") || "[]");
 
-    if (!mood || !intent) {
+    if (!storedIntent || Object.keys(stats).length === 0) {
       router.push("/mood/pre-question");
       return;
     }
 
-    setMood(mood);
-    setIntent(intent);
-    setSubfeelings(subs);
-    setCaption(intentCaptionMap[intent] || "ให้คุณได้สิ่งที่ใจคุณต้องการ");
+    const sorted = Object.entries(stats).sort((a, b) => b[1] - a[1]);
+    const topMood = sorted[0]?.[0];
 
-    const moodObj = moods.find((m) => m.mood === mood);
+    setTopMood(topMood);
+    setIntent(storedIntent);
+    setSubfeelings(subs);
+    setCaption(intentCaptionMap[storedIntent] || "ให้คุณได้สิ่งที่ใจคุณต้องการ");
+
+    const mapped = subs.map((s: string) => subfeelingMap[s]).filter(Boolean);
+    setInsightLines(mapped);
+
+    // 🎨 เปลี่ยนพื้นหลังตาม topMood
+    setBgGradient(moodGradientMap[topMood] || "from-gray-50 via-slate-100 to-indigo-100");
+
+    const moodObj = moods.find((m) => m.mood === topMood);
     if (!moodObj) return;
 
     const safeMatch = (arr?: string[]) => Array.isArray(arr) ? arr : [];
@@ -63,29 +99,41 @@ export default function RecommendResult() {
 
   return (
     <motion.div
-      className="min-h-screen bg-gradient-to-b from-sky-50 to-white py-12 px-4 font-sans"
+      className={`min-h-screen bg-gradient-to-b ${bgGradient} py-12 px-4 font-sans`}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 1.2 }}
+      style={{ fontFamily: "'Noto Sans Thai', sans-serif" }}
     >
       <div className="max-w-6xl mx-auto">
         {/* HEADER */}
         <motion.div
-          className="text-center mb-12"
+          className="text-center mb-10"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
         >
           <h1 className="text-4xl sm:text-5xl font-bold text-gray-800 mb-3 tracking-tight leading-snug">
-            เราเลือกเล่มนี้ให้คุณแล้ว
+          เล่มนี้แหละ... ใจคุณกำลังอยากอ่านอยู่แต่ยังไม่รู้ตัว
           </h1>
-          {mood && (
-            <p className="text-lg text-gray-600 italic">
-              จากความรู้สึกว่า <strong className="text-indigo-700">{`"${mood}"`}</strong> <br />
+          {topMood && (
+            <p className="text-lg text-gray-600 italic mt-2">
+              จากอารมณ์หลักในใจคุณ <strong className="text-indigo-700">{`"${topMood}"`}</strong> <br />
               และสิ่งที่คุณต้องการคือ <strong className="text-indigo-700">{`"${intent}"`}</strong>
             </p>
           )}
           <p className="mt-4 text-xl text-gray-700 font-medium">{caption}</p>
+
+          {insightLines.length > 0 && (
+            <div className="mt-6 text-sm text-gray-600 leading-relaxed">
+              {insightLines.map((line, idx) => (
+                <p key={idx} className="mb-1">• {line}</p>
+              ))}
+              <p className="mt-3 italic text-indigo-600 font-medium">
+                และทั้งหมดนี้... คือคุณในตอนนี้
+              </p>
+            </div>
+          )}
         </motion.div>
 
         {/* BOOKS */}
@@ -132,17 +180,18 @@ export default function RecommendResult() {
           </motion.div>
         )}
 
-        {/* EMOTIONALLY CLOSING */}
+        {/* CLOSING */}
         <motion.div
           className="text-center mt-20 text-lg text-gray-700 font-semibold"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.2 }}
         >
-          ยังมีอีกหลายเรื่องรอให้คุณค้นเจอ... หรือบางที สิ่งที่ใจคุณต้องการอาจยังไม่ชัดเจนพอ 💭
+          หนังสือเล่มนึงอาจเปลี่ยนชีวิตไม่ได้ทันที <br />
+          แต่ใจที่ยอมฟังตัวเอง... นั่นแหละจุดเริ่มต้นของทุกอย่าง 💭
         </motion.div>
 
-        {/* RETRY BUTTON */}
+        {/* RETRY */}
         <div className="mt-10 text-center">
           <button
             onClick={() => router.push("/mood")}
