@@ -67,7 +67,8 @@ export default function RecommendResult() {
       return;
     }
 
-    const sorted = Object.entries(stats).sort((a, b) => b[1] - a[1]);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const sorted = Object.entries(stats).sort((a: any, b: any) => b[1] - a[1]);
     const topMood = sorted[0]?.[0];
 
     setTopMood(topMood);
