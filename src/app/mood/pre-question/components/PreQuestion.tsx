@@ -150,7 +150,7 @@ export default function PreQuestionFlow({ questions }: { questions: Question[] }
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5, duration: 0.8 }}
           >
-            ชี้ดาบคัดมาให้คุณ <strong className="text-indigo-900">8 คำถามจากใจ</strong>... <br />
+            ชี้ดาบคัดมาให้คุณ <strong className="text-indigo-900">{questions.length + 1} คำถามจากใจ</strong>... <br />
             พร้อม <strong className="text-indigo-900">คำถามสุดท้าย</strong>ที่ตรงกับความรู้สึกคุณที่สุด 💙
           </motion.div>
         )}
