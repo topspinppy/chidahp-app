@@ -106,9 +106,14 @@ export const books = [
     author: "ชี้ดาบ",
     description: "ตอนจบของชีวิตต่างแดน ที่ทิ้งคำถามกับหัวใจไว้มากมาย",
     cover: "/covers/year2.png"
+  },
+  {
+    title: "หลงจริงเวียดนาม",
+    author: "ชี้ดาบ",
+    description: "เมื่อทริปเพื่อพิสูจน์ความเป็นพี่ชาย... ชิบหายกว่าที่คิด!",
+    cover: "/covers/vietnam.png"
   }
 ];
-
 
 export const moods = [
   {
@@ -144,7 +149,6 @@ export const moods = [
       "ไม่แน่ใจว่าอะไรคือสิ่งที่ใช่"
     ],
     quote: "ความเงียบไม่ใช่เพื่อนเสมอไป โดยเฉพาะเมื่อเราไม่ได้ขอ",
-
     books: books.filter(book => book.title === "พู่กันเปื้อนสี" || book.title === "Route13 Part One" || book.title === "0 ปี อเมริกา")
   },
   {
@@ -309,4 +313,3 @@ export const moods = [
     books: books.filter(book => book.title === "ตามติดชีวิตอินเดีย 2" || book.title === "1 ปี กับชีวิตที่ผมอยู่ในอเมริกา 1")
   }
 ];
-
