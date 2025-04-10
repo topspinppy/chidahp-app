@@ -9,7 +9,10 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@hello-pangea/dnd": "^18.0.1",
+    "@types/react-beautiful-dnd": "^13.1.8",
     "axios": "^1.8.4",
+    "firebase": "^11.6.0",
     "framer-motion": "^12.6.3",
     "html-to-image": "^1.11.13",
     "next": "15.2.4",
