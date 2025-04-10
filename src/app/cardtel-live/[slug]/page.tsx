@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect, useState } from "react";
@@ -22,12 +23,12 @@ export default function CardtelUserPage() {
   const router = useRouter();
 
   const [availableCards, setAvailableCards] = useState<Card[]>([]);
-  const [selectedCards, setSelectedCards] = useState([]);
+  const [selectedCards, setSelectedCards] = useState<Card[]>([]);
   const [message, setMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [isSent, setIsSent] = useState(false);
   const [isValidating, setIsValidating] = useState(true);
-  const [isValidRoom, setIsValidRoom] = useState(false);
+  const [, setIsValidRoom] = useState(false);
 
   useEffect(() => {
     const validateAndFetch = async () => {
@@ -63,7 +64,8 @@ export default function CardtelUserPage() {
     if (from === "available" && to === "selected") {
       const dragged = availableCards[source.index];
       setAvailableCards((prev) => prev.filter((_, i) => i !== source.index));
-      setSelectedCards((prev) => [...prev, dragged]);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      setSelectedCards((prev: any) => [...prev, dragged]);
     }
 
     if (from === "selected" && to === "available") {
