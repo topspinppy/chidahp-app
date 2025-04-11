@@ -51,7 +51,8 @@ export default function CardtelUserPage() {
     validateAndFetch();
   }, [roomId, router]);
 
-  console.log(availableCards);
+
+ 
 
   useEffect(() => {
     document.body.style.overflow = isSent ? "hidden" : "";

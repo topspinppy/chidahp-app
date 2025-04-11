@@ -13,6 +13,7 @@ export interface CardtelRoom {
   cardChoose: Card[];
   message: string;
   hasSubmitted: boolean;
+  watch?: boolean;
   createdAt: Date | string;
 };
 
@@ -71,6 +72,22 @@ export async function saveCardtel(slug: string, cards: Card[], message: string) 
     console.log(`✅ บันทึกสำเร็จเข้า room "${slug}" เรียบร้อยค้าบ`);
   } catch (error) {
     console.error("❌ เกิดข้อผิดพลาดในการบันทึก:", error);
+  }
+}
+
+export async function updateCardtelRoom(roomId: string, updates: Partial<CardtelRoom>) {
+  const roomRef = doc(db, "cardtel-room", roomId);
+  await updateDoc(roomRef, updates);
+}
+
+export async function markRoomAsWatched(roomId: string) {
+  try {
+    const roomRef = doc(db, "cardtel-room", roomId);
+    await updateDoc(roomRef, {
+      watch: true,
+    });
+  } catch (error) {
+    console.error("❌ เกิดข้อผิดพลาดในการ mark watch:", error);
   }
 }
 

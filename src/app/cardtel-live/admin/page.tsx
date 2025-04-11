@@ -5,6 +5,7 @@ import {
   CardtelRoom,
   getAllCardtelRooms,
   createCardtelRoom,
+  markRoomAsWatched
 } from "../firebase";
 import { useCardtelRooms } from "./hooks/useCardtelRooms";
 
@@ -19,14 +20,14 @@ const DEFAULT_CARD_LIST = [
   "ไม่อยากเป็นตัวเอง",
 ];
 
+
 export default function CardtelAdminPage() {
   const [showModal, setShowModal] = useState(false);
   const [slug, setSlug] = useState("");
   const [title, setTitle] = useState("");
   const [rooms, setRooms] = useState<CardtelRoom[]>([]);
-  const { rooms: cardtelRooms, loading } = useCardtelRooms(); // จาก hook realtime
+  const { rooms: cardtelRooms, loading } = useCardtelRooms();
 
-  // เรียกแค่ครั้งแรก
   useEffect(() => {
     const fetchInitialRooms = async () => {
       const cardtelRoomLists = await getAllCardtelRooms();
@@ -35,7 +36,6 @@ export default function CardtelAdminPage() {
     fetchInitialRooms();
   }, []);
 
-  // ถ้า cardtelRooms มีการอัปเดต → อัปเดต state ของเรา
   useEffect(() => {
     if (!loading && cardtelRooms.length > 0) {
       setRooms(cardtelRooms);
@@ -49,6 +49,7 @@ export default function CardtelAdminPage() {
       cardChoose: [],
       message: "",
       hasSubmitted: false,
+      watch: false,
       createdAt: new Date().toISOString(),
     };
     await createCardtelRoom(room);
@@ -71,22 +72,27 @@ export default function CardtelAdminPage() {
           + New Cardtel Room
         </button>
 
-        {/* Room List */}
         <div className="mt-8 space-y-4">
           {rooms.map((room, index) => {
             const hasNewCard = room.hasSubmitted && room.cardChoose.length > 0;
+            const hasBeenViewed = room.watch === true;
+            const shouldShowBadge = hasNewCard && !hasBeenViewed;
 
             return (
               <div
                 key={index}
-                className="p-4 bg-white rounded shadow flex flex-col md:flex-row justify-between items-start md:items-center"
+                className={`p-4 rounded shadow flex flex-col md:flex-row justify-between items-start md:items-center transition-all duration-300 ${
+                  shouldShowBadge
+                    ? "bg-red-50 border border-red-300"
+                    : "bg-white border border-gray-100"
+                }`}
               >
                 <div className="mb-2 md:mb-0">
                   <h2 className="text-lg font-semibold">
                     {room.title || "— ไม่มีชื่อห้อง —"}
                   </h2>
 
-                  {hasNewCard && (
+                  {shouldShowBadge && (
                     <p className="text-xs text-red-500 mt-1 font-medium animate-pulse">
                       มีการ์ดใหม่!
                     </p>
@@ -116,9 +122,8 @@ export default function CardtelAdminPage() {
                 <div className="flex flex-col items-end md:items-start mt-2 md:mt-0 md:ml-4 relative">
                   <a
                     href={`/cardtel-live/admin/${room.id}`}
-                    className={`relative text-sm font-semibold px-3 py-2 rounded transition-all duration-150
-                        text-blue-600 hover:text-blue-700
-                    `}
+                    onClick={async () => await markRoomAsWatched(room.id ?? "")}
+                    className="relative text-sm font-semibold px-3 py-2 rounded transition-all duration-150 text-blue-600 hover:text-blue-700"
                   >
                     View Responses →
                   </a>
