@@ -17,7 +17,6 @@ export function useCardtelRooms() {
           ...doc.data(),
         })) as CardtelRoom[];
 
-        console.log("🔥 useCardtelRooms result:", result);
         setRooms(result);
         setLoading(false);
       });
@@ -25,7 +24,6 @@ export function useCardtelRooms() {
       return () => unsubscribe(); // cleanup ตอน unmount
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
-      console.error("🔥 useCardtelRooms error:", err);
       setError(err.message);
       setLoading(false);
     }

@@ -1,21 +1,26 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+
 import {
   CardtelRoom,
   getAllCardtelRooms,
   createCardtelRoom,
-  markRoomAsWatched
+  markRoomAsWatched,
 } from "../firebase";
 import { useCardtelRooms } from "./hooks/useCardtelRooms";
 
-
-
 export default function CardtelAdminPage() {
+  const router = useRouter();
   const [showModal, setShowModal] = useState(false);
   const [slug, setSlug] = useState("");
   const [title, setTitle] = useState("");
   const [rooms, setRooms] = useState<CardtelRoom[]>([]);
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState<
+    "all" | "latest" | "unwatched" | "submitted"
+  >("all");
   const { rooms: cardtelRooms, loading } = useCardtelRooms();
 
   useEffect(() => {
@@ -43,10 +48,31 @@ export default function CardtelAdminPage() {
       createdAt: new Date().toISOString(),
     };
     await createCardtelRoom(room);
+    alert("สร้างห้องเรียบร้อย");
     setShowModal(false);
     setSlug("");
     setTitle("");
   };
+
+  const filteredRooms = rooms
+    .filter((room) => {
+      if (filter === "submitted") return room.hasSubmitted;
+      if (filter === "unwatched") return room.hasSubmitted && !room.watch;
+      return true;
+    })
+    .filter(
+      (room) =>
+        room.title?.toLowerCase().includes(search.toLowerCase()) ||
+        room.slug?.toLowerCase().includes(search.toLowerCase())
+    )
+    .sort((a, b) => {
+      // hasSubmitted: true มาก่อน
+      if (a.hasSubmitted !== b.hasSubmitted) {
+        return Number(a.hasSubmitted) - Number(b.hasSubmitted);
+      }
+      // hasSubmitted เท่ากัน: ให้ watch = false มาก่อน
+      return Number(a.watch) - Number(b.watch);
+    });
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
@@ -55,35 +81,50 @@ export default function CardtelAdminPage() {
           🧙‍♂️ Cardtel Live: Admin
         </h1>
 
-        <button
-          onClick={() => setShowModal(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
-          + New Cardtel Room
-        </button>
-        <div className="mt-8 space-y-4">
-          {rooms.toSorted((a, b) => {
-            // เรียงตาม hasSubmitted: true มาก่อน
-            if (a.hasSubmitted !== b.hasSubmitted) {
-              return Number(a.hasSubmitted) - Number(b.hasSubmitted);
-            }
+        <div className="flex flex-col md:flex-row md:items-center md:space-x-4 space-y-4 md:space-y-0">
+          <button
+            onClick={() => setShowModal(true)}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            + New Cardtel Room
+          </button>
 
-            // ถ้า hasSubmitted เท่ากัน: ให้ watch = false มาก่อน
-            return Number(a.watch) - Number(b.watch);
-          }).map((room, index) => {
+          <input
+            type="text"
+            placeholder="🔍 ค้นหาชื่อห้อง / slug"
+            className="px-3 py-2 border rounded w-full md:w-64"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+
+          <select
+            value={filter}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            onChange={(e) => setFilter(e.target.value as any)}
+            className="px-3 py-2 border rounded"
+          >
+            <option value="all">📋 แสดงทั้งหมด</option>
+            <option value="submitted">✅ ส่งการ์ดแล้ว</option>
+            <option value="unwatched">👀 ยังไม่ดู</option>
+          </select>
+        </div>
+
+        <div className="mt-8 space-y-4">
+          {filteredRooms.map((room, index) => {
             const hasNewCard = room.hasSubmitted && room.cardChoose.length > 0;
             const hasBeenViewed = room.watch === true;
             const shouldShowBadge = hasNewCard && !hasBeenViewed;
 
+            let bgColor = "bg-white";
+            if (hasNewCard && !hasBeenViewed) bgColor = "bg-red-50";
+            else if (room.hasSubmitted) bgColor = "bg-green-50";
+
             return (
               <div
                 key={index}
-                className={`p-4 rounded shadow flex flex-col md:flex-row justify-between items-start md:items-center transition-all duration-300 ${shouldShowBadge
-                  ? "bg-red-50 border border-red-300"
-                  : "bg-white border border-gray-100"
-                  }`}
+                className={`p-4 rounded shadow flex flex-col md:flex-row justify-between items-start md:items-center border transition-all duration-300 ${bgColor}`}
               >
-                <div className="mb-2 md:mb-0">
+                <div>
                   <h2 className="text-lg font-semibold">
                     {room.title || "— ไม่มีชื่อห้อง —"}
                   </h2>
@@ -100,33 +141,44 @@ export default function CardtelAdminPage() {
                   <p className="text-sm text-gray-400">
                     Created: {new Date(room.createdAt).toLocaleString()}
                   </p>
-                  {
-                    !room.hasSubmitted && (
-                      <div className="mt-3">
-                        <button
-                          onClick={() => {
-                            const url = `${window.location.origin}/cardtel-live/${room.id}`;
-                            navigator.clipboard.writeText(url);
-                            alert("คัดลอกลิงก์เรียบร้อย");
-                          }}
-                          className="text-sm text-blue-500 hover:underline"
-                        >
-                          🔗 คัดลอกลิงก์ห้อง
-                        </button>
-                      </div>
-                    )
-                  }
+                  <p className="text-sm text-gray-600">
+                    การ์ดที่เลือก: {room.cardChoose.length} ใบ
+                  </p>
 
+                  {!room.hasSubmitted && (
+                    <button
+                      onClick={() => {
+                        const url = `${window.location.origin}/cardtel-live/${room.id}`;
+                        navigator.clipboard.writeText(url);
+                        alert("คัดลอกลิงก์เรียบร้อย");
+                      }}
+                      className="text-sm text-blue-500 hover:underline mt-2"
+                    >
+                      🔗 คัดลอกลิงก์ห้อง
+                    </button>
+                  )}
+
+                  <a
+                    href={`/cardtel-live/${room.id}`}
+                    target="_blank"
+                    className="block text-xs text-gray-400 hover:underline mt-1"
+                  >
+                    👁 ดูหน้า public
+                  </a>
                 </div>
 
-                <div className="flex flex-col items-end md:items-start mt-2 md:mt-0 md:ml-4 relative">
-                  <a
-                    href={`/cardtel-live/admin/${room.id}`}
-                    onClick={async () => await markRoomAsWatched(room.id ?? "")}
-                    className="relative text-sm font-semibold px-3 py-2 rounded transition-all duration-150 text-blue-600 hover:text-blue-700"
+                <div className="flex flex-col items-end mt-4 md:mt-0 space-y-2">
+                  <button
+                    onClick={async () => {
+                      if (room.hasSubmitted && !room.watch) {
+                        await markRoomAsWatched(room.id ?? "");
+                      }
+                      router.push(`/cardtel-live/admin/${room.id}`);
+                    }}
+                    className="text-sm font-semibold px-3 py-2 rounded text-blue-600 hover:text-blue-700 cursor-pointer"
                   >
                     View Responses →
-                  </a>
+                  </button>
                 </div>
               </div>
             );
@@ -157,7 +209,6 @@ export default function CardtelAdminPage() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
-
 
             <div className="flex justify-end space-x-3">
               <button
