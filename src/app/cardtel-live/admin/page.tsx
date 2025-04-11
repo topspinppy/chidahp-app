@@ -9,16 +9,6 @@ import {
 } from "../firebase";
 import { useCardtelRooms } from "./hooks/useCardtelRooms";
 
-const DEFAULT_CARD_LIST = [
-  "หมดไฟ",
-  "กลัวอนาคต",
-  "คิดถึงใครบางคน",
-  "อยากเริ่มใหม่",
-  "ล้มเหลว",
-  "โดดเดี่ยว",
-  "หลงทาง",
-  "ไม่อยากเป็นตัวเอง",
-];
 
 
 export default function CardtelAdminPage() {
