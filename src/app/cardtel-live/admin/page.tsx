@@ -1,7 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CardtelRoom, getAllCardtelRooms, createCardtelRoom } from '../firebase';
+import {
+  CardtelRoom,
+  getAllCardtelRooms,
+  createCardtelRoom,
+} from "../firebase";
 import { useCardtelRooms } from "./hooks/useCardtelRooms";
 
 const DEFAULT_CARD_LIST = [
@@ -14,8 +18,6 @@ const DEFAULT_CARD_LIST = [
   "หลงทาง",
   "ไม่อยากเป็นตัวเอง",
 ];
-
-
 
 export default function CardtelAdminPage() {
   const [showModal, setShowModal] = useState(false);
@@ -83,6 +85,13 @@ export default function CardtelAdminPage() {
                   <h2 className="text-lg font-semibold">
                     {room.title || "— ไม่มีชื่อห้อง —"}
                   </h2>
+
+                  {hasNewCard && (
+                    <p className="text-xs text-red-500 mt-1 font-medium animate-pulse">
+                      มีการ์ดใหม่!
+                    </p>
+                  )}
+
                   <p className="text-sm text-gray-500">
                     Room id: <code>{room.id}</code>
                   </p>
@@ -104,27 +113,19 @@ export default function CardtelAdminPage() {
                   </div>
                 </div>
 
-                <div className="flex flex-col items-end md:items-start mt-2 md:mt-0 md:ml-4">
+                <div className="flex flex-col items-end md:items-start mt-2 md:mt-0 md:ml-4 relative">
                   <a
                     href={`/cardtel-live/admin/${room.id}`}
-                    className={`relative text-blue-600 hover:underline px-2 py-1 rounded transition ${hasNewCard ? "font-bold text-red-600" : ""
-                      }`}
+                    className={`relative text-sm font-semibold px-3 py-2 rounded transition-all duration-150
+                        text-blue-600 hover:text-blue-700
+                    `}
                   >
                     View Responses →
-                    {hasNewCard && (
-                      <span className="absolute -top-1 -right-2 bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
-                        ●
-                      </span>
-                    )}
                   </a>
-                  {hasNewCard && (
-                    <p className="text-xs text-red-500 mt-1 animate-pulse">มีการ์ดใหม่!</p>
-                  )}
                 </div>
               </div>
             );
           })}
-
         </div>
       </div>
 
