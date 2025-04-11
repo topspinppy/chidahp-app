@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { CardtelRoom, getAllCardtelRooms, createCardtelRoom } from '../firebase';
+import { Metadata } from "next";
 
 const DEFAULT_CARD_LIST = [
   "หมดไฟ",
@@ -12,6 +13,11 @@ const DEFAULT_CARD_LIST = [
   "หลงทาง",
   "ไม่อยากเป็นตัวเอง",
 ];
+
+export const metadata: Metadata = {
+  title: "Cardtel Live Admin",
+};
+
 
 export default function CardtelAdminPage() {
   const [showModal, setShowModal] = useState(false);
