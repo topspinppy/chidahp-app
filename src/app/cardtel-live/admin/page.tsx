@@ -23,7 +23,7 @@ export default function CardtelAdminPage() {
   const [title, setTitle] = useState("");
   const [rooms, setRooms] = useState<CardtelRoom[]>([]);
   const { rooms: cardtelRooms, loading } = useCardtelRooms(); // จาก hook realtime
-  
+
   // เรียกแค่ครั้งแรก
   useEffect(() => {
     const fetchInitialRooms = async () => {
@@ -32,7 +32,7 @@ export default function CardtelAdminPage() {
     };
     fetchInitialRooms();
   }, []);
-  
+
   // ถ้า cardtelRooms มีการอัปเดต → อัปเดต state ของเรา
   useEffect(() => {
     if (!loading && cardtelRooms.length > 0) {
@@ -71,44 +71,60 @@ export default function CardtelAdminPage() {
 
         {/* Room List */}
         <div className="mt-8 space-y-4">
-          {rooms.map((room, index) => (
-            <div
-              key={index}
-              className="p-4 bg-white rounded shadow flex flex-col md:flex-row justify-between items-start md:items-center"
-            >
-              <div className="mb-2 md:mb-0">
-                <h2 className="text-lg font-semibold">
-                  {room.title || "— ไม่มีชื่อห้อง —"}
-                </h2>
-                <p className="text-sm text-gray-500">
-                  Room id: <code>{room.id}</code>
-                </p>
-                <p className="text-sm text-gray-400">
-                  Created: {new Date(room.createdAt).toLocaleString()}
-                </p>
+          {rooms.map((room, index) => {
+            const hasNewCard = room.hasSubmitted && room.cardChoose.length > 0;
 
-                <div className="mt-3">
-                  <button
-                    onClick={() => {
-                      const url = `${window.location.origin}/cardtel-live/${room.id}`;
-                      navigator.clipboard.writeText(url);
-                      alert("คัดลอกลิงก์เรียบร้อยแล้วค้าบ!");
-                    }}
-                    className="text-sm text-blue-500 hover:underline"
+            return (
+              <div
+                key={index}
+                className="p-4 bg-white rounded shadow flex flex-col md:flex-row justify-between items-start md:items-center"
+              >
+                <div className="mb-2 md:mb-0">
+                  <h2 className="text-lg font-semibold">
+                    {room.title || "— ไม่มีชื่อห้อง —"}
+                  </h2>
+                  <p className="text-sm text-gray-500">
+                    Room id: <code>{room.id}</code>
+                  </p>
+                  <p className="text-sm text-gray-400">
+                    Created: {new Date(room.createdAt).toLocaleString()}
+                  </p>
+
+                  <div className="mt-3">
+                    <button
+                      onClick={() => {
+                        const url = `${window.location.origin}/cardtel-live/${room.id}`;
+                        navigator.clipboard.writeText(url);
+                        alert("คัดลอกลิงก์เรียบร้อยแล้วค้าบ!");
+                      }}
+                      className="text-sm text-blue-500 hover:underline"
+                    >
+                      🔗 คัดลอกลิงก์ห้อง
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex flex-col items-end md:items-start mt-2 md:mt-0 md:ml-4">
+                  <a
+                    href={`/cardtel-live/admin/${room.id}`}
+                    className={`relative text-blue-600 hover:underline px-2 py-1 rounded transition ${hasNewCard ? "font-bold text-red-600" : ""
+                      }`}
                   >
-                    🔗 คัดลอกลิงก์ห้อง
-                  </button>
+                    View Responses →
+                    {hasNewCard && (
+                      <span className="absolute -top-1 -right-2 bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
+                        ●
+                      </span>
+                    )}
+                  </a>
+                  {hasNewCard && (
+                    <p className="text-xs text-red-500 mt-1 animate-pulse">มีการ์ดใหม่!</p>
+                  )}
                 </div>
               </div>
+            );
+          })}
 
-              <a
-                href={`/cardtel-live/admin/${room.id}`}
-                className="text-blue-600 hover:underline mt-2 md:mt-0 md:ml-4"
-              >
-                View Responses →
-              </a>
-            </div>
-          ))}
         </div>
       </div>
 
