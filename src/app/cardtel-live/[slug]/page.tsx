@@ -121,12 +121,13 @@ export default function CardtelUserPage() {
               <div
                 ref={provided.innerRef}
                 {...provided.droppableProps}
-                className="flex-1 bg-white p-6 rounded-3xl shadow-xl border border-violet-200 min-h-[240px]"
+                className="w-full md:w-[60%] bg-white p-10 rounded-3xl shadow-xl border border-violet-200 min-h-[700px]"
               >
-                <h2 className="font-bold mb-4 text-violet-700 text-xl">
+                <h2 className="font-bold mb-6 text-violet-700 text-xl">
                   🧾 การ์ดทั้งหมด
                 </h2>
-                <div className="flex flex-wrap gap-4 items-start">
+
+                <div className="grid grid-cols-3 gap-x-10 gap-y-8 place-items-center">
                   {availableCards.map((card, index) => (
                     <Draggable
                       key={card.id}
@@ -136,17 +137,15 @@ export default function CardtelUserPage() {
                     >
                       {(provided) => (
                         <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                          className="w-[180px] px-5 py-3 text-center bg-gradient-to-br from-white to-violet-100 
-                                     text-violet-800 text-lg font-bold rounded-2xl shadow-lg 
-                                     border border-violet-100 ring-1 ring-violet-200
-                                     hover:scale-105 hover:shadow-xl hover:ring-2 hover:ring-violet-400
-                                     transition-all duration-200 ease-in-out cursor-pointer"
-                        >
-                          {card.title}
-                        </div>
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                        className="w-[180px] h-[180px] flex items-center justify-center text-center
+                                   text-violet-800 text-lg font-bold rounded-2xl border border-violet-100 ring-1 ring-violet-200
+                                   cursor-pointer bg-[url('/Cardtel.png')] bg-cover bg-center bg-no-repeat"
+                      >
+                        {card.title}
+                      </div>
                       )}
                     </Draggable>
                   ))}
@@ -155,6 +154,13 @@ export default function CardtelUserPage() {
               </div>
             )}
           </Droppable>
+
+
+
+
+
+
+
 
           {/* SELECTED ZONE */}
           <Droppable droppableId="selected">
@@ -207,11 +213,10 @@ export default function CardtelUserPage() {
                     <button
                       onClick={handleSendCard}
                       disabled={isSending || isSent || message.trim() === ""}
-                      className={`mt-4 ${
-                        isSending || isSent || message.trim() === ""
-                          ? "bg-gray-400 cursor-not-allowed"
-                          : "bg-green-600 hover:bg-green-700"
-                      } text-white font-semibold px-5 py-2 rounded-full shadow transition`}
+                      className={`mt-4 ${isSending || isSent || message.trim() === ""
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-green-600 hover:bg-green-700"
+                        } text-white font-semibold px-5 py-2 rounded-full shadow transition`}
                     >
                       {isSent ? "📮 ส่งแล้วเรียบร้อย" : "💌 ส่งการ์ดให้ชี้ดาบ"}
                     </button>
