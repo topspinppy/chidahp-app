@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { CardtelRoom, getAllCardtelRooms, createCardtelRoom } from '../firebase';
+import { useCardtelRooms } from "./hooks/useCardtelRooms";
 
 const DEFAULT_CARD_LIST = [
   "หมดไฟ",
@@ -21,15 +22,23 @@ export default function CardtelAdminPage() {
   const [slug, setSlug] = useState("");
   const [title, setTitle] = useState("");
   const [rooms, setRooms] = useState<CardtelRoom[]>([]);
-
-  const fetchCardTelRooms = async () => {
-    const cardtelRoomLists = await getAllCardtelRooms();
-    setRooms(cardtelRoomLists);
-  };
-
+  const { rooms: cardtelRooms, loading } = useCardtelRooms(); // จาก hook realtime
+  
+  // เรียกแค่ครั้งแรก
   useEffect(() => {
-    fetchCardTelRooms();
+    const fetchInitialRooms = async () => {
+      const cardtelRoomLists = await getAllCardtelRooms();
+      setRooms(cardtelRoomLists);
+    };
+    fetchInitialRooms();
   }, []);
+  
+  // ถ้า cardtelRooms มีการอัปเดต → อัปเดต state ของเรา
+  useEffect(() => {
+    if (!loading && cardtelRooms.length > 0) {
+      setRooms(cardtelRooms);
+    }
+  }, [cardtelRooms, loading]);
 
   const createRoom = async () => {
     const room: CardtelRoom = {
@@ -41,7 +50,6 @@ export default function CardtelAdminPage() {
       createdAt: new Date().toISOString(),
     };
     await createCardtelRoom(room);
-    await fetchCardTelRooms();
     setShowModal(false);
     setSlug("");
     setTitle("");
@@ -94,7 +102,7 @@ export default function CardtelAdminPage() {
               </div>
 
               <a
-                href={`/cardtel-live/${room.id}`}
+                href={`/cardtel-live/admin/${room.id}`}
                 className="text-blue-600 hover:underline mt-2 md:mt-0 md:ml-4"
               >
                 View Responses →
