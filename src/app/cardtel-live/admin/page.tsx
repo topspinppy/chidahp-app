@@ -68,10 +68,16 @@ export default function CardtelAdminPage() {
     .sort((a, b) => {
       // hasSubmitted: true มาก่อน
       if (a.hasSubmitted !== b.hasSubmitted) {
-        return Number(a.hasSubmitted) - Number(b.hasSubmitted);
+        return Number(b.hasSubmitted) - Number(a.hasSubmitted);
       }
-      // hasSubmitted เท่ากัน: ให้ watch = false มาก่อน
-      return Number(a.watch) - Number(b.watch);
+
+      // ถ้า hasSubmitted เท่ากัน: ให้ watch = false มาก่อน
+      if (a.watch !== b.watch) {
+        return Number(a.watch) - Number(b.watch);
+      }
+
+      // ถ้าเหมือนกันหมด → เรียงจาก createdAt ล่าสุดขึ้นก่อน
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
 
   return (
