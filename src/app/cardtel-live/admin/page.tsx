@@ -61,9 +61,16 @@ export default function CardtelAdminPage() {
         >
           + New Cardtel Room
         </button>
-
         <div className="mt-8 space-y-4">
-          {rooms.map((room, index) => {
+          {rooms.toSorted((a, b) => {
+            // เรียงตาม hasSubmitted: true มาก่อน
+            if (a.hasSubmitted !== b.hasSubmitted) {
+              return Number(a.hasSubmitted) - Number(b.hasSubmitted);
+            }
+
+            // ถ้า hasSubmitted เท่ากัน: ให้ watch = false มาก่อน
+            return Number(a.watch) - Number(b.watch);
+          }).map((room, index) => {
             const hasNewCard = room.hasSubmitted && room.cardChoose.length > 0;
             const hasBeenViewed = room.watch === true;
             const shouldShowBadge = hasNewCard && !hasBeenViewed;
@@ -71,11 +78,10 @@ export default function CardtelAdminPage() {
             return (
               <div
                 key={index}
-                className={`p-4 rounded shadow flex flex-col md:flex-row justify-between items-start md:items-center transition-all duration-300 ${
-                  shouldShowBadge
-                    ? "bg-red-50 border border-red-300"
-                    : "bg-white border border-gray-100"
-                }`}
+                className={`p-4 rounded shadow flex flex-col md:flex-row justify-between items-start md:items-center transition-all duration-300 ${shouldShowBadge
+                  ? "bg-red-50 border border-red-300"
+                  : "bg-white border border-gray-100"
+                  }`}
               >
                 <div className="mb-2 md:mb-0">
                   <h2 className="text-lg font-semibold">
@@ -94,19 +100,23 @@ export default function CardtelAdminPage() {
                   <p className="text-sm text-gray-400">
                     Created: {new Date(room.createdAt).toLocaleString()}
                   </p>
+                  {
+                    !room.hasSubmitted && (
+                      <div className="mt-3">
+                        <button
+                          onClick={() => {
+                            const url = `${window.location.origin}/cardtel-live/${room.id}`;
+                            navigator.clipboard.writeText(url);
+                            alert("คัดลอกลิงก์เรียบร้อย");
+                          }}
+                          className="text-sm text-blue-500 hover:underline"
+                        >
+                          🔗 คัดลอกลิงก์ห้อง
+                        </button>
+                      </div>
+                    )
+                  }
 
-                  <div className="mt-3">
-                    <button
-                      onClick={() => {
-                        const url = `${window.location.origin}/cardtel-live/${room.id}`;
-                        navigator.clipboard.writeText(url);
-                        alert("คัดลอกลิงก์เรียบร้อย");
-                      }}
-                      className="text-sm text-blue-500 hover:underline"
-                    >
-                      🔗 คัดลอกลิงก์ห้อง
-                    </button>
-                  </div>
                 </div>
 
                 <div className="flex flex-col items-end md:items-start mt-2 md:mt-0 md:ml-4 relative">
