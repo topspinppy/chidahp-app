@@ -110,7 +110,7 @@ export default function CardtelAdminPage() {
                       onClick={() => {
                         const url = `${window.location.origin}/cardtel-live/${room.id}`;
                         navigator.clipboard.writeText(url);
-                        alert("คัดลอกลิงก์เรียบร้อยแล้วค้าบ!");
+                        alert("คัดลอกลิงก์เรียบร้อย");
                       }}
                       className="text-sm text-blue-500 hover:underline"
                     >
@@ -158,9 +158,6 @@ export default function CardtelAdminPage() {
               onChange={(e) => setTitle(e.target.value)}
             />
 
-            <p className="text-sm text-gray-500 mb-4">
-              ห้องจะใช้การ์ดทั้งหมด {DEFAULT_CARD_LIST.length} ใบ โดยอัตโนมัติ
-            </p>
 
             <div className="flex justify-end space-x-3">
               <button
