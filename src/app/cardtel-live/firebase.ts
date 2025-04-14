@@ -15,6 +15,7 @@ export interface CardtelRoom {
   hasSubmitted: boolean;
   watch?: boolean;
   createdAt: Date | string;
+  bookAssigned: string[] // ⬅ เปลี่ยนจาก string เดี่ยว
 };
 
 const firebaseConfig = {
@@ -114,4 +115,20 @@ export async function checkCardtelRoomExists(slug: string): Promise<boolean> {
     console.error("❌ ตรวจสอบ slug ผิดพลาด:", error);
     return false;
   }
+}
+
+
+export async function getAllBooks() {
+  const snapshot = await getDocs(collection(db, "books"));
+  return snapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  })) as { id: string; title: string }[];
+}
+
+export async function assignBookToRoom(roomId: string, bookIds: string[]) {
+  const ref = doc(db, "cardtel-room", roomId); // 🔥 FIXED COLLECTION NAME
+  await updateDoc(ref, {
+    bookAssigned: bookIds, // ✅ Overwrite เดิมไปเลย
+  });
 }

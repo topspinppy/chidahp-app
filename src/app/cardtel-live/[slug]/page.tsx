@@ -265,11 +265,10 @@ export default function CardtelUserPage() {
                       onClick={handleSendCard}
                       disabled={isSending || isSent || message.trim() === ""}
                       className={`w-full max-w-xs text-white font-semibold px-5 py-2 rounded-full shadow transition
-              ${
-                isSending || isSent || message.trim() === ""
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-violet-600 hover:bg-violet-700"
-              }`}
+              ${isSending || isSent || message.trim() === ""
+                          ? "bg-gray-400 cursor-not-allowed"
+                          : "bg-violet-600 hover:bg-violet-700"
+                        }`}
                     >
                       {isSent ? "📮 ส่งแล้วเรียบร้อย" : "💌 ส่งการ์ดให้ชี้ดาบ"}
                     </button>
@@ -299,18 +298,38 @@ export default function CardtelUserPage() {
               <h2 className="text-2xl font-bold text-violet-700 mb-3">
                 💌 ส่งการ์ดเรียบร้อยแล้ว!
               </h2>
-              <p className="text-gray-700 text-sm leading-relaxed">
+
+              <p className="text-gray-700 text-sm leading-relaxed mb-4">
                 ขอบคุณที่เลือกการ์ดของคุณนะค้าบ
                 <br />
-                📺 ติดตามคำทำนายจาก{" "}
-                <span className="font-semibold">Live ของชี้ดาบ</span>
+                📺 ติดตามคำทำนายจาก <span className="font-semibold">Live ของชี้ดาบ</span>
                 <br />
                 ได้เลยค้าบโผ้ม!
               </p>
+
+              <div className="text-left bg-violet-50 p-3 rounded-lg border border-violet-200 text-xs text-gray-800 mb-2">
+                🔗 ลิงก์ผลลัพธ์ของคุณ:<br />
+                <span className="break-all text-violet-600 font-semibold">
+                  {`${window.location.origin}/cardtel-live/${roomId}/result`}
+                </span>
+              </div>
+
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(
+                    `${window.location.origin}/cardtel-live/${roomId}/result`
+                  );
+                  alert("คัดลอกลิงก์เรียบร้อยค้าบ!");
+                }}
+                className="mt-2 px-4 py-2 text-sm bg-violet-600 hover:bg-violet-700 text-white rounded-full shadow"
+              >
+                📎 คัดลอกลิงก์ไว้ดูผลลัพธ์
+              </button>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
+
     </div>
   );
 }
