@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   DragDropContext,
   Droppable,
@@ -17,12 +16,25 @@ import {
   checkCardtelRoomExists,
 } from "../firebase";
 
-
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+  return isMobile;
+}
 
 export default function CardtelUserPage() {
   const params = useParams();
   const roomId = params?.slug as string;
   const router = useRouter();
+  const isMobile = useIsMobile();
+  const selectedRef = useRef<HTMLDivElement>(null);
 
   const [availableCards, setAvailableCards] = useState<Card[]>([]);
   const [selectedCards, setSelectedCards] = useState<Card[]>([]);
@@ -30,29 +42,21 @@ export default function CardtelUserPage() {
   const [isSending, setIsSending] = useState(false);
   const [isSent, setIsSent] = useState(false);
   const [isValidating, setIsValidating] = useState(true);
-  const [, setIsValidRoom] = useState(false);
 
   useEffect(() => {
     const validateAndFetch = async () => {
       if (!roomId) return;
-
       const exists = await checkCardtelRoomExists(roomId);
       if (!exists) {
         router.replace("/404");
         return;
       }
-
-      setIsValidRoom(true);
       const cards = await getAllCardtel();
       setAvailableCards(cards);
       setIsValidating(false);
     };
-
     validateAndFetch();
   }, [roomId, router]);
-
-
- 
 
   useEffect(() => {
     document.body.style.overflow = isSent ? "hidden" : "";
@@ -69,8 +73,7 @@ export default function CardtelUserPage() {
     if (from === "available" && to === "selected") {
       const dragged = availableCards[source.index];
       setAvailableCards((prev) => prev.filter((_, i) => i !== source.index));
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      setSelectedCards((prev: any) => [...prev, dragged]);
+      setSelectedCards((prev) => [...prev, dragged]);
     }
 
     if (from === "selected" && to === "available") {
@@ -94,6 +97,18 @@ export default function CardtelUserPage() {
     }
   };
 
+  const toggleSelect = (card: Card) => {
+    const already = selectedCards.find((c) => c.id === card.id);
+    if (already) return;
+    setAvailableCards((prev) => prev.filter((c) => c.id !== card.id));
+    setSelectedCards((prev) => [...prev, card]);
+  };
+
+  const removeCard = (card: Card) => {
+    setSelectedCards((prev) => prev.filter((c) => c.id !== card.id));
+    setAvailableCards((prev) => [...prev, card]);
+  };
+
   const handleSendCard = async () => {
     if (message.trim() === "") return;
     setIsSending(true);
@@ -115,7 +130,6 @@ export default function CardtelUserPage() {
   return (
     <div className="min-h-screen bg-[#f5f5ff] py-10 px-6 font-sans relative">
       <h1 className="text-4xl md:text-5xl font-black text-center mb-8 text-violet-700 tracking-tight drop-shadow-sm">
-        <span className="inline-block animate-pulse"></span>
         <span className="bg-gradient-to-r from-violet-700 via-pink-500 to-yellow-400 bg-clip-text text-transparent">
           Cardtel
         </span>
@@ -136,32 +150,48 @@ export default function CardtelUserPage() {
                   🧾 การ์ดทั้งหมด
                 </h2>
                 <div className="flex flex-wrap gap-4 items-start">
-                  {availableCards.map((card, index) => (
-                    <Draggable
-                      key={card.id}
-                      draggableId={card.id}
-                      index={index}
-                      isDragDisabled={isSent}
-                    >
-                      {(provided) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                          className="w-[180px] aspect-square flex items-center justify-center text-center 
-                                   bg-gradient-to-br from-white to-violet-100 text-violet-800 text-sm font-bold 
-                                   rounded-2xl shadow-lg border border-violet-100 ring-1 ring-violet-200
-                                   hover:scale-105 hover:shadow-xl hover:ring-2 hover:ring-violet-400
-                                   transition-all duration-200 ease-in-out cursor-pointer 
-                                   bg-[url('/Cardtel.png')] bg-contain bg-no-repeat bg-center px-3"
-                        >
-                          <span className="break-words leading-snug max-w-[90%]">
-                            {card.title}
-                          </span>
-                        </div>
-                      )}
-                    </Draggable>
-                  ))}
+                  {availableCards.map((card, index) =>
+                    isMobile ? (
+                      <div
+                        key={card.id}
+                        onClick={() => toggleSelect(card)}
+                        className="w-[150px] aspect-square bg-gradient-to-br from-white to-violet-100 text-violet-800 text-sm font-bold 
+                        rounded-2xl shadow-lg border border-violet-100 ring-1 ring-violet-200
+                        hover:scale-105 hover:shadow-xl hover:ring-2 hover:ring-violet-400
+                        transition-all duration-200 ease-in-out cursor-pointer 
+                        bg-[url('/Cardtel.png')] bg-contain bg-no-repeat bg-center px-3 flex items-center justify-center text-center"
+                      >
+                        <span className="break-words leading-snug max-w-[90%]">
+                          {card.title}
+                        </span>
+                      </div>
+                    ) : (
+                      <Draggable
+                        key={card.id}
+                        draggableId={card.id}
+                        index={index}
+                        isDragDisabled={isSent}
+                      >
+                        {(provided) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                            className="w-[180px] aspect-square flex items-center justify-center text-center 
+                              bg-gradient-to-br from-white to-violet-100 text-violet-800 text-sm font-bold 
+                              rounded-2xl shadow-lg border border-violet-100 ring-1 ring-violet-200
+                              hover:scale-105 hover:shadow-xl hover:ring-2 hover:ring-violet-400
+                              transition-all duration-200 ease-in-out cursor-pointer 
+                              bg-[url('/Cardtel.png')] bg-contain bg-no-repeat bg-center px-3"
+                          >
+                            <span className="break-words leading-snug max-w-[90%]">
+                              {card.title}
+                            </span>
+                          </div>
+                        )}
+                      </Draggable>
+                    )
+                  )}
                   {provided.placeholder}
                 </div>
               </div>
@@ -181,27 +211,44 @@ export default function CardtelUserPage() {
                 </h2>
 
                 <div className="flex flex-col items-center gap-3 mb-6">
-                  {selectedCards.map((card, index) => (
-                    <Draggable
-                      key={card.id}
-                      draggableId={card.id}
-                      index={index}
-                      isDragDisabled={isSent}
-                    >
-                      {(provided) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                          className="w-full max-w-xs text-center px-5 py-3 bg-gradient-to-br from-green-100 to-green-200 
-                           text-green-900 text-base font-semibold rounded-2xl shadow ring-1 ring-green-300
-                           cursor-pointer hover:ring-2 hover:ring-green-500 transition"
+                  {selectedCards.map((card, index) =>
+                    isMobile ? (
+                      <div
+                        key={card.id}
+                        className="w-full max-w-xs text-center px-5 py-3 bg-gradient-to-br from-green-100 to-green-200 
+                          text-green-900 text-base font-semibold rounded-2xl shadow ring-1 ring-green-300
+                          flex items-center justify-between gap-4"
+                      >
+                        <span>{card.title}</span>
+                        <button
+                          onClick={() => removeCard(card)}
+                          className="text-red-500 text-sm font-bold"
                         >
-                          {card.title}
-                        </div>
-                      )}
-                    </Draggable>
-                  ))}
+                          ลบ
+                        </button>
+                      </div>
+                    ) : (
+                      <Draggable
+                        key={card.id}
+                        draggableId={card.id}
+                        index={index}
+                        isDragDisabled={isSent}
+                      >
+                        {(provided) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                            className="w-full max-w-xs text-center px-5 py-3 bg-gradient-to-br from-green-100 to-green-200 
+                              text-green-900 text-base font-semibold rounded-2xl shadow ring-1 ring-green-300
+                              cursor-pointer hover:ring-2 hover:ring-green-500 transition"
+                          >
+                            {card.title}
+                          </div>
+                        )}
+                      </Draggable>
+                    )
+                  )}
                   {provided.placeholder}
                 </div>
 
@@ -235,7 +282,7 @@ export default function CardtelUserPage() {
         </div>
       </DragDropContext>
 
-      {/* OVERLAY */}
+      {/* ✅ OVERLAY */}
       <AnimatePresence>
         {isSent && (
           <motion.div
