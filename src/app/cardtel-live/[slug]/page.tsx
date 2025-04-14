@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   DragDropContext,
   Droppable,
@@ -34,7 +34,6 @@ export default function CardtelUserPage() {
   const roomId = params?.slug as string;
   const router = useRouter();
   const isMobile = useIsMobile();
-  const selectedRef = useRef<HTMLDivElement>(null);
 
   const [availableCards, setAvailableCards] = useState<Card[]>([]);
   const [selectedCards, setSelectedCards] = useState<Card[]>([]);
