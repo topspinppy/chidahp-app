@@ -63,6 +63,7 @@ export default function CardtelAdminPage() {
       hasSubmitted: false,
       watch: false,
       createdAt: new Date().toISOString(),
+      bookAssigned: [],
     };
     await createCardtelRoom(room);
     alert("สร้างห้องเรียบร้อย");
@@ -124,7 +125,8 @@ export default function CardtelAdminPage() {
 
           <select
             value={filter}
-            onChange={(e) => setFilter(e.target.value as any)}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            onChange={(e) => setFilter(e.target.value as unknown as any)}
             className="px-3 py-2 border rounded"
           >
             <option value="all">📋 แสดงทั้งหมด</option>
