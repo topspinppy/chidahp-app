@@ -23,7 +23,7 @@ export default function CardtelAdminPage() {
   const [filter, setFilter] = useState<
     "all" | "latest" | "unwatched" | "submitted"
   >("all");
-
+  const [visibleCount, setVisibleCount] = useState(10);
   const { rooms: cardtelRooms, loading } = useCardtelRooms();
 
   // Assign book state
@@ -91,12 +91,26 @@ export default function CardtelAdminPage() {
         room.slug?.toLowerCase().includes(search.toLowerCase())
     )
     .sort((a, b) => {
-      if (a.hasSubmitted !== b.hasSubmitted) {
-        return Number(b.hasSubmitted) - Number(a.hasSubmitted);
+      // ✅ 1. คำนวณ shouldShowBadge
+      const aHasNewCard = a.hasSubmitted && a.cardChoose.length > 0 && !a.watch;
+      const bHasNewCard = b.hasSubmitted && b.cardChoose.length > 0 && !b.watch;
+
+      // ✅ 2. ห้องที่มีการ์ดใหม่ → ขึ้นก่อน
+      if (aHasNewCard !== bHasNewCard) {
+        return Number(bHasNewCard) - Number(aHasNewCard); // true มาก่อน
       }
+
+      // ✅ 3. ยังไม่ได้ดู → ขึ้นก่อน
       if (a.watch !== b.watch) {
-        return Number(a.watch) - Number(b.watch);
+        return Number(a.watch) - Number(b.watch); // false มาก่อน
       }
+
+      // ✅ 4. ยังไม่ได้ส่ง → ขึ้นก่อน
+      if (a.hasSubmitted !== b.hasSubmitted) {
+        return Number(a.hasSubmitted) - Number(b.hasSubmitted);
+      }
+
+      // ✅ 5. อัปเดตล่าสุดอยู่บน (หรือใช้ createdAt ถ้าไม่มี updatedAt)
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
 
@@ -136,7 +150,7 @@ export default function CardtelAdminPage() {
         </div>
 
         <div className="mt-8 space-y-4">
-          {filteredRooms.map((room, index) => {
+          {filteredRooms.slice(0, visibleCount).map((room, index) => {
             const hasNewCard = room.hasSubmitted && room.cardChoose.length > 0;
             const hasBeenViewed = room.watch === true;
             const shouldShowBadge = hasNewCard && !hasBeenViewed;
@@ -150,9 +164,10 @@ export default function CardtelAdminPage() {
                 key={index}
                 className={`p-4 rounded shadow flex flex-col md:flex-row justify-between items-start md:items-center border transition-all duration-300 ${bgColor}`}
               >
-                <div>
-                  <h2 className="text-lg font-semibold">
-                    {room.title || "— ไม่มีชื่อห้อง —"}
+                {/* ฝั่งซ้าย */}
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-lg font-semibold break-words">
+                    {room?.title || "— ไม่มีชื่อห้อง —"}
                   </h2>
 
                   {shouldShowBadge && (
@@ -161,7 +176,7 @@ export default function CardtelAdminPage() {
                     </p>
                   )}
 
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-500 break-all">
                     Room id: <code>{room.id}</code>
                   </p>
                   <p className="text-sm text-gray-400">
@@ -172,7 +187,7 @@ export default function CardtelAdminPage() {
                   </p>
 
                   {room.bookAssigned?.length > 0 && (
-                    <p className="text-sm text-violet-700 mt-1">
+                    <p className="text-sm text-violet-700 mt-1 break-words">
                       📚 หนังสือที่จับคู่:{" "}
                       {books
                         .filter((b) => room.bookAssigned?.includes(b.id))
@@ -203,7 +218,8 @@ export default function CardtelAdminPage() {
                   </a>
                 </div>
 
-                <div className="flex flex-col items-end mt-4 md:mt-0 space-y-2">
+                {/* ฝั่งขวา */}
+                <div className="flex flex-col items-end mt-4 md:mt-0 md:ml-4 space-y-2 shrink-0">
                   {room.hasSubmitted && (
                     <>
                       <button
@@ -249,11 +265,22 @@ export default function CardtelAdminPage() {
                   </button>
                 </div>
               </div>
+
             );
           })}
         </div>
       </div>
 
+      {filteredRooms.length > visibleCount && (
+        <div className="flex justify-center mt-6">
+          <button
+            onClick={() => setVisibleCount((prev) => prev + 10)}
+            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 text-sm rounded"
+          >
+            🔄 แสดงห้องเพิ่มเติม
+          </button>
+        </div>
+      )}
       {/* Modal: สร้างห้อง */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center z-50">
@@ -341,11 +368,10 @@ export default function CardtelAdminPage() {
                     alert("จับคู่หนังสือเรียบร้อยค้าบ!");
                   }
                 }}
-                className={`px-4 py-2 rounded text-white ${
-                  selectedBooks.length > 0
-                    ? "bg-violet-600 hover:bg-violet-700"
-                    : "bg-gray-400 cursor-not-allowed"
-                }`}
+                className={`px-4 py-2 rounded text-white ${selectedBooks.length > 0
+                  ? "bg-violet-600 hover:bg-violet-700"
+                  : "bg-gray-400 cursor-not-allowed"
+                  }`}
               >
                 บันทึก
               </button>

@@ -13,8 +13,9 @@ import {
   saveCardtel,
   getAllCardtel,
   Card,
-  checkCardtelRoomExists,
+  db,
 } from "../firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(false);
@@ -45,17 +46,29 @@ export default function CardtelUserPage() {
   useEffect(() => {
     const validateAndFetch = async () => {
       if (!roomId) return;
-      const exists = await checkCardtelRoomExists(roomId);
-      if (!exists) {
-        router.replace("/404");
+  
+      const docRef = doc(db, "cardtel-room", roomId);
+      const docSnap = await getDoc(docRef);
+  
+      if (!docSnap.exists()) {
+        router.replace("/404"); // ถ้าไม่เจอห้องเลย → 404
         return;
       }
+  
+      const data = docSnap.data();
+      if (data.hasSubmitted) {
+        router.replace(`/cardtel-live/${roomId}/result`); // ถ้าส่งการ์ดแล้ว → redirect
+        return;
+      }
+  
       const cards = await getAllCardtel();
       setAvailableCards(cards);
       setIsValidating(false);
     };
+  
     validateAndFetch();
   }, [roomId, router]);
+  
 
   useEffect(() => {
     document.body.style.overflow = isSent ? "hidden" : "";
