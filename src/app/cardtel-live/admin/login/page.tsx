@@ -1,10 +1,9 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { signInWithEmailAndPassword } from "firebase/auth"
-import { auth } from "../../firebase" // ปรับ path ตามโปรเจกต์ของคุณ
+import { auth } from "../../firebase"
 
 export default function AdminLogin() {
   const [email, setEmail] = useState("")
@@ -15,42 +14,80 @@ export default function AdminLogin() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
-
     try {
       await signInWithEmailAndPassword(auth, email, password)
       router.push("/cardtel-live/admin")
     } catch (err: any) {
-      setError(err.message)
+      setError("🫣 ใส่ผิดแหละดูออก")
     }
   }
 
   return (
-    <div className="min-h-screen flex justify-center items-center bg-gray-50">
-      <form onSubmit={handleLogin} className="bg-white p-6 rounded shadow w-full max-w-sm space-y-4">
-        <h1 className="text-xl font-bold">🔐 Admin Login</h1>
-        {error && <p className="text-red-500 text-sm">{error}</p>}
+    <div className="min-h-screen bg-[#FFFBEA] flex items-center justify-center">
+      <div className="bg-white shadow-lg border border-[#FFE57F] rounded-xl p-8 w-full max-w-md text-center relative">
 
-        <input
-          type="email"
-          placeholder="Email"
-          className="border px-3 py-2 rounded w-full"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          className="border px-3 py-2 rounded w-full"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <button
-          type="submit"
-          className="bg-blue-600 text-white px-4 py-2 w-full rounded hover:bg-blue-700"
-        >
-          เข้าสู่ระบบ
-        </button>
-      </form>
+        {/* การ์ดหมุน */}
+        <div className="flex justify-center mb-4">
+          <div className="w-16 h-24 bg-yellow-400 rounded-lg shadow-md animate-spin-slow border border-black flex items-center justify-center text-black text-2xl font-bold">
+            🎴
+          </div>
+        </div>
+
+        <h1 className="text-xl font-extrabold text-[#000000] mb-4">
+          Cardtel Live Admin
+        </h1>
+
+        {error && <p className="text-sm text-red-500 mb-3">{error}</p>}
+
+        <form onSubmit={handleLogin} className="space-y-4 text-left">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <input
+              type="email"
+              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              placeholder="admin@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <input
+              type="password"
+              className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+              placeholder="********"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="w-full bg-black text-yellow-400 font-semibold py-2 rounded hover:opacity-90 transition"
+          >
+            เข้าสู่ระบบ
+          </button>
+        </form>
+
+        <div className="text-xs text-gray-500 mt-6">
+          © 2025 <strong>นักเรียนชูโล่</strong> | สำนักพิมพ์ชี้ดาบ
+          <br />
+          <span className="italic">*เราไม่ได้ร่ายเวท...แต่รหัสต้องถูกถึงเข้าได้*</span>
+        </div>
+      </div>
+
+      {/* 🔁 CSS animation */}
+      <style jsx>{`
+        .animate-spin-slow {
+          animation: spin 3s linear infinite;
+        }
+
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   )
 }
