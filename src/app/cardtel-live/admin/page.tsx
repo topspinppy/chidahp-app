@@ -10,10 +10,15 @@ import {
   markRoomAsWatched,
   assignBookToRoom,
   getAllBooks,
+  handleLogout as handleLogoutFirebase,
+  auth
 } from "../firebase";
 import { useCardtelRooms } from "./hooks/useCardtelRooms";
+import { useAuthRedirect } from "./hooks/useAuthRedirect";
 
 export default function CardtelAdminPage() {
+  const { authChecked, isAuthenticated } = useAuthRedirect();
+
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
   const [slug, setSlug] = useState("");
@@ -114,8 +119,33 @@ export default function CardtelAdminPage() {
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
 
+  // 🛡 ถ้ายังเช็ก auth ไม่เสร็จ → แสดงแค่ loading
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-500">กำลังโหลด...</p>
+      </div>
+    );
+  }
+
+  // 🛑 ถ้า authChecked แล้วแต่ไม่ได้ login → ไม่ต้องแสดงอะไร
+  if (!isAuthenticated) return null;
+
+  const handleLogout = async () => {
+    await handleLogoutFirebase();
+    router.replace("/cardtel-live/admin/login")
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-8">
+      <div className="flex justify-end mb-4">
+        <button
+          onClick={handleLogout}
+          className="text-sm bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
+        >
+          🚪 ออกจากระบบ
+        </button>
+      </div>
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-800 mb-6">
           🧙‍♂️ Cardtel Live: Admin
@@ -265,7 +295,6 @@ export default function CardtelAdminPage() {
                   </button>
                 </div>
               </div>
-
             );
           })}
         </div>
@@ -332,7 +361,10 @@ export default function CardtelAdminPage() {
 
             <div className="mb-4 space-y-2 max-h-[250px] overflow-y-auto border rounded p-3">
               {books.map((book) => (
-                <label key={book.id} className="flex items-center gap-2 text-sm">
+                <label
+                  key={book.id}
+                  className="flex items-center gap-2 text-sm"
+                >
                   <input
                     type="checkbox"
                     value={book.id}
@@ -368,10 +400,11 @@ export default function CardtelAdminPage() {
                     alert("จับคู่หนังสือเรียบร้อยค้าบ!");
                   }
                 }}
-                className={`px-4 py-2 rounded text-white ${selectedBooks.length > 0
-                  ? "bg-violet-600 hover:bg-violet-700"
-                  : "bg-gray-400 cursor-not-allowed"
-                  }`}
+                className={`px-4 py-2 rounded text-white ${
+                  selectedBooks.length > 0
+                    ? "bg-violet-600 hover:bg-violet-700"
+                    : "bg-gray-400 cursor-not-allowed"
+                }`}
               >
                 บันทึก
               </button>

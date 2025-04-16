@@ -1,4 +1,5 @@
 import { initializeApp, getApps } from "firebase/app";
+import { getAuth, signOut } from "firebase/auth";
 import { addDoc, arrayUnion, collection, doc, getDoc, getDocs, getFirestore, updateDoc } from "firebase/firestore";
 
 export interface Card {
@@ -30,7 +31,13 @@ const firebaseConfig = {
 
 
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+export const auth = getAuth(app);
 export const db = getFirestore(app);
+
+
+export const handleLogout = async () => {
+  await signOut(auth)
+}
 
 
 export async function getAllCardtel(): Promise<Card[]> {

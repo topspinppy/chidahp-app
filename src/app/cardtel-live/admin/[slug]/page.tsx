@@ -4,8 +4,10 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { db, CardtelRoom, Card } from "../../firebase";
+import { useAuthRedirect } from "../hooks/useAuthRedirect";
 
 export default function AdminRoomPage() {
+  useAuthRedirect();
   const params = useParams();
   const slug = params?.slug as string;
   const [room, setRoom] = useState<CardtelRoom | null>(null);
