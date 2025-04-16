@@ -7,7 +7,7 @@ import { auth } from "../../firebase"
 
 
 
-export function useRedirectIfAuthenticated() {
+function useRedirectIfAuthenticated() {
   const router = useRouter()
   const [checked, setChecked] = useState(false)
 
