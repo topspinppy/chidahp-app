@@ -1,11 +1,34 @@
 'use client'
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { signInWithEmailAndPassword } from "firebase/auth"
+import { signInWithEmailAndPassword, onAuthStateChanged } from "firebase/auth"
 import { auth } from "../../firebase"
 
+
+
+export function useRedirectIfAuthenticated() {
+  const router = useRouter()
+  const [checked, setChecked] = useState(false)
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        router.replace("/cardtel-live/admin")
+      } else {
+        setChecked(true)
+      }
+    })
+
+    return () => unsubscribe()
+  }, [router])
+
+  return { checked }
+}
+
 export default function AdminLogin() {
+  const { checked } = useRedirectIfAuthenticated()
+
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
@@ -20,6 +43,15 @@ export default function AdminLogin() {
     } catch {
       setError("🫣 ใส่ผิดแหละดูออก")
     }
+  }
+
+  // 🔒 ยังไม่เช็คเสร็จ → ซ่อนไว้ก่อน
+  if (!checked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#FFFBEA]">
+        <p className="text-gray-400 text-sm">กำลังตรวจสอบ...</p>
+      </div>
+    )
   }
 
   return (
