@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { signInWithEmailAndPassword, onAuthStateChanged } from "firebase/auth"
 import { auth } from "../../firebase"
+import Image from "next/image"
 
 
 
@@ -60,8 +61,8 @@ export default function AdminLogin() {
 
         {/* การ์ดหมุน */}
         <div className="flex justify-center mb-4">
-          <div className="w-16 h-24 bg-yellow-400 rounded-lg shadow-md animate-spin-slow border border-black flex items-center justify-center text-black text-2xl font-bold">
-            🎴
+          <div className="rounded-full shadow-md animate-spin-slow border border-black flex items-center justify-center text-black text-2xl font-bold">
+            <Image src="/logo/chidahp-logo.png" alt="Cardtel Live Logo" className="w-16 h-16" width={64} height={64} />
           </div>
         </div>
 
