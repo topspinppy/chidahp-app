@@ -11,7 +11,6 @@ import {
   assignBookToRoom,
   getAllBooks,
   handleLogout as handleLogoutFirebase,
-  auth
 } from "../firebase";
 import { useCardtelRooms } from "./hooks/useCardtelRooms";
 import { useAuthRedirect } from "./hooks/useAuthRedirect";
