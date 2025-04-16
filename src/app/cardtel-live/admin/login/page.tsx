@@ -17,7 +17,7 @@ export default function AdminLogin() {
     try {
       await signInWithEmailAndPassword(auth, email, password)
       router.push("/cardtel-live/admin")
-    } catch (err: any) {
+    } catch {
       setError("🫣 ใส่ผิดแหละดูออก")
     }
   }
