@@ -9,10 +9,38 @@ import {
   addDoc,
   Timestamp,
   updateDoc,
+  getDoc,
 } from "firebase/firestore";
 
 import { db } from "@/app/cardtel-live/firebase";
 import { motion, AnimatePresence } from "framer-motion";
+
+// ดึง books เฉพาะที่ assign แล้ว เก็บ cache ใน localStorage
+const fetchBooksAssigned = async (bookIds: string[], setBooks: (books: Book[]) => void) => {
+  const cachedJson = localStorage.getItem("chidahp_books_cache");
+  const cachedBooks = cachedJson ? JSON.parse(cachedJson) as Book[] : [];
+
+  const fromCache = cachedBooks.filter((b) => bookIds.includes(b.id));
+  setBooks(fromCache);
+
+  try {
+    const docRefs = bookIds.slice(0, 10).map((id) => doc(db, "books", id));
+    const docsSnap = await Promise.all(docRefs.map(getDoc));
+    const freshBooks = docsSnap
+      .filter((snap) => snap.exists())
+      .map((snap) => ({ id: snap.id, ...snap.data() } as Book));
+
+    setBooks(freshBooks);
+
+    const all = [...cachedBooks, ...freshBooks];
+    const map = new Map<string, Book>();
+    all.forEach((b) => map.set(b.id, b));
+    const deduped = Array.from(map.values());
+    localStorage.setItem("chidahp_books_cache", JSON.stringify(deduped));
+  } catch (err) {
+    console.error("❌ Error fetching assigned books", err);
+  }
+};
 
 // 🧠 Card / Room / Book Types
 interface Card {
@@ -200,12 +228,21 @@ export default function CardtelResultPage() {
       if (isFirstLoadWithBooks) {
         setShowBooks(true);
         setInitialBookAssignedShown(true);
+        console.log("newBooks", newBooks);
+        fetchBooksAssigned(newBooks!, (book) => {
+          console.log("book", book);
+          setBooks(book);
+        }); // <— ตรงนี้!
       }
   
       // ✅ C & ✅ D: Assign ครั้งแรก หรือ assign ใหม่ → แสดง countdown
       if ((isInitialAssign || isNewAssignment) && !isFirstLoadWithBooks) {
         setCountdown(3);
         setShowBooks(false);
+        fetchBooksAssigned(newBooks!, (book) => {
+          console.log("book", book);
+          setBooks(book);
+        }); // <— ตรงนี้ด้วย!
   
         const interval = setInterval(() => {
           setCountdown((prev) => {
@@ -225,22 +262,10 @@ export default function CardtelResultPage() {
       setFirstLoad(false);
     });
   
-    const unsubBooks = onSnapshot(collection(db, "books"), (snap) => {
-      const allBooks = snap.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Book[];
-      setBooks(allBooks);
-    });
-  
-    return () => {
-      unsubRoom();
-      unsubBooks();
-    };
+    return () => unsubRoom();
   }, [roomId, firstLoad, initialBookAssignedShown]);
   
-
-
+  
 
 
 
@@ -281,6 +306,7 @@ export default function CardtelResultPage() {
     return <div className="min-h-screen flex items-center justify-center text-gray-500">📡 กำลังโหลดข้อมูลห้อง...</div>;
   }
 
+  console.log("books", books);
   return (
     <div className="min-h-screen bg-white px-6 py-10 max-w-3xl mx-auto font-sans">
       <h1 className="text-4xl font-black text-center text-violet-800 mb-6 leading-snug">
@@ -446,6 +472,7 @@ export default function CardtelResultPage() {
           ✅ คุณได้ส่งความรู้สึกเรียบร้อยแล้ว ขอบคุณค้าบโผ้ม!
         </div>
       )}
+
     </div>
   );
 }
