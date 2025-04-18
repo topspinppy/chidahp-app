@@ -150,8 +150,6 @@ export default function CardtelResultPage() {
   const [books, setBooks] = useState<Book[]>([]);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [showBooks, setShowBooks] = useState(false);
-  const [firstLoad, setFirstLoad] = useState(true);
-  const [hasSeenBooks, setHasSeenBooks] = useState(false);
   const [quote, setQuote] = useState<string | null>(null);
   const [userFeedback, setUserFeedback] = useState("");
   const [anonymousName, setAnonymousName] = useState("");
@@ -159,7 +157,8 @@ export default function CardtelResultPage() {
   const [hasAgreedToPrivacy, setHasAgreedToPrivacy] = useState(false);
   const [userAgentInfo, setUserAgentInfo] = useState("");
   const [userLocation, setUserLocation] = useState<{ city: string; country: string } | null>(null);
-
+  const [initialBookAssignedShown, setInitialBookAssignedShown] = useState(false);
+  const [firstLoad, setFirstLoad] = useState(true);
   const previousBooksRef = useRef<string[] | undefined>(undefined);
 
   useEffect(() => {
@@ -183,32 +182,36 @@ export default function CardtelResultPage() {
       const hadBooksBefore = previousBooksRef.current?.length ?? 0 > 0;
       const nowHasBooks = newBooks?.length ?? 0 > 0;
   
-      // 🧠 Case 1: Assign ใหม่จากเดิมมีอยู่แล้ว แต่ค่าต่างกัน
       const isNewAssignment =
         hadBooksBefore &&
         nowHasBooks &&
         JSON.stringify(previousBooksRef.current) !== JSON.stringify(newBooks);
   
-      // 🧠 Case 2: Assign ครั้งแรกเลย (จากไม่มี → มี)
       const isInitialAssign =
         !previousBooksRef.current?.length &&
-        nowHasBooks &&
-        !firstLoad;
+        nowHasBooks;
+  
+      const isFirstLoadWithBooks = firstLoad && nowHasBooks && !initialBookAssignedShown;
   
       setRoomData(newData);
       previousBooksRef.current = newBooks;
   
-      // ✨ Trigger animation หากมี assignment ใหม่ หรือเพิ่ง assign ครั้งแรก
-      if ((isNewAssignment || isInitialAssign) && !showBooks) {
+      // ✅ A: โหลดครั้งแรกมีหนังสือ → โชว์ทันที
+      if (isFirstLoadWithBooks) {
+        setShowBooks(true);
+        setInitialBookAssignedShown(true);
+      }
+  
+      // ✅ C & ✅ D: Assign ครั้งแรก หรือ assign ใหม่ → แสดง countdown
+      if ((isInitialAssign || isNewAssignment) && !isFirstLoadWithBooks) {
         setCountdown(3);
         setShowBooks(false);
   
         const interval = setInterval(() => {
-          setCountdown(prev => {
+          setCountdown((prev) => {
             if (prev === 1) {
               clearInterval(interval);
               setShowBooks(true);
-              setHasSeenBooks(true);
               return null;
             }
             return (prev ?? 0) - 1;
@@ -218,12 +221,7 @@ export default function CardtelResultPage() {
         return () => clearInterval(interval);
       }
   
-      // 🚀 First load but already has books → show instantly
-      if (firstLoad && nowHasBooks && !hasSeenBooks) {
-        setShowBooks(true);
-        setHasSeenBooks(true);
-      }
-  
+      // ✅ B: โหลดครั้งแรก แต่ยังไม่มีหนังสือ → ยังไม่โชว์
       setFirstLoad(false);
     });
   
@@ -239,8 +237,12 @@ export default function CardtelResultPage() {
       unsubRoom();
       unsubBooks();
     };
-  }, [roomId, firstLoad, hasSeenBooks, showBooks]);
+  }, [roomId, firstLoad, initialBookAssignedShown]);
   
+
+
+
+
 
   const handleSendFeedback = async () => {
     if (!userFeedback.trim()) {
@@ -329,14 +331,22 @@ export default function CardtelResultPage() {
               exit={{ opacity: 0 }}
               className="text-center py-10 text-yellow-700 text-lg font-semibold"
             >
-              🃏 {roomData.bookAssigned?.length === 0 ? 'ยังไม่มีหนังสือที่ชี้ดาบจับคู่ให้คุณ...รอแป๊ปน้า' : 'การ์ดกำลังแปรสภาพเป็นหนังสือ...'}
-              <div className="text-5xl mt-3 font-bold animate-pulse">{countdown}</div>
-              <div className="mt-6 w-full bg-yellow-100 rounded-full h-3 max-w-sm mx-auto overflow-hidden">
-                <div
-                  className="h-full bg-yellow-500 transition-all duration-1000 ease-linear"
-                  style={{ width: `${((countdown ?? 3) / 3) * 100}%` }}
-                />
-              </div>
+              {
+                roomData.bookAssigned?.length === 0
+                  ? "ยังไม่มีหนังสือที่ชี้ดาบจับคู่ให้คุณ...รอแป๊ปน้า"
+                  : "การ์ดกำลังแปรสภาพเป็นหนังสือ..."
+              }
+              {countdown !== null && (
+                <>
+                  <div className="text-5xl mt-3 font-bold animate-pulse">{countdown}</div>
+                  <div className="mt-6 w-full bg-yellow-100 rounded-full h-3 max-w-sm mx-auto overflow-hidden">
+                    <div
+                      className="h-full bg-yellow-500 transition-all duration-1000 ease-linear"
+                      style={{ width: `${((countdown ?? 3) / 3) * 100}%` }}
+                    />
+                  </div>
+                </>
+              )}
             </motion.div>
           ) : (
             <motion.div
@@ -423,11 +433,10 @@ export default function CardtelResultPage() {
           <button
             onClick={handleSendFeedback}
             disabled={!hasAgreedToPrivacy}
-            className={`px-4 py-2 text-sm rounded-md transition ${
-              hasAgreedToPrivacy
+            className={`px-4 py-2 text-sm rounded-md transition ${hasAgreedToPrivacy
                 ? "bg-violet-700 text-white hover:bg-violet-800"
                 : "bg-gray-300 text-gray-500 cursor-not-allowed"
-            }`}
+              }`}
           >
             📩 ส่งความรู้สึก
           </button>
