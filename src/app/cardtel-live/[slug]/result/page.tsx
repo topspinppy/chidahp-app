@@ -174,25 +174,35 @@ export default function CardtelResultPage() {
 
   useEffect(() => {
     if (!roomId) return;
-
+  
     const unsubRoom = onSnapshot(doc(db, "cardtel-room", roomId as string), (docSnap) => {
       if (!docSnap.exists()) return;
+  
       const newData = docSnap.data() as RoomData;
       const newBooks = newData.bookAssigned;
       const hadBooksBefore = previousBooksRef.current?.length ?? 0 > 0;
       const nowHasBooks = newBooks?.length ?? 0 > 0;
-
+  
+      // 🧠 Case 1: Assign ใหม่จากเดิมมีอยู่แล้ว แต่ค่าต่างกัน
       const isNewAssignment =
         hadBooksBefore &&
         nowHasBooks &&
         JSON.stringify(previousBooksRef.current) !== JSON.stringify(newBooks);
-
+  
+      // 🧠 Case 2: Assign ครั้งแรกเลย (จากไม่มี → มี)
+      const isInitialAssign =
+        !previousBooksRef.current?.length &&
+        nowHasBooks &&
+        !firstLoad;
+  
       setRoomData(newData);
       previousBooksRef.current = newBooks;
-
-      if (isNewAssignment) {
+  
+      // ✨ Trigger animation หากมี assignment ใหม่ หรือเพิ่ง assign ครั้งแรก
+      if ((isNewAssignment || isInitialAssign) && !showBooks) {
         setCountdown(3);
         setShowBooks(false);
+  
         const interval = setInterval(() => {
           setCountdown(prev => {
             if (prev === 1) {
@@ -204,17 +214,19 @@ export default function CardtelResultPage() {
             return (prev ?? 0) - 1;
           });
         }, 1000);
+  
         return () => clearInterval(interval);
       }
-
+  
+      // 🚀 First load but already has books → show instantly
       if (firstLoad && nowHasBooks && !hasSeenBooks) {
         setShowBooks(true);
         setHasSeenBooks(true);
       }
-
+  
       setFirstLoad(false);
     });
-
+  
     const unsubBooks = onSnapshot(collection(db, "books"), (snap) => {
       const allBooks = snap.docs.map(doc => ({
         id: doc.id,
@@ -222,12 +234,13 @@ export default function CardtelResultPage() {
       })) as Book[];
       setBooks(allBooks);
     });
-
+  
     return () => {
       unsubRoom();
       unsubBooks();
     };
-  }, [roomId, firstLoad, hasSeenBooks]);
+  }, [roomId, firstLoad, hasSeenBooks, showBooks]);
+  
 
   const handleSendFeedback = async () => {
     if (!userFeedback.trim()) {
@@ -307,7 +320,6 @@ export default function CardtelResultPage() {
         <p className="text-sm text-yellow-700 mb-4">
           คลิกเพื่อสั่งซื้อได้ที่ Shopee หรือ Page365 ด้านล่างนี้เลยค้าบ!
         </p>
-
         <AnimatePresence mode="wait">
           {!showBooks ? (
             <motion.div
@@ -317,7 +329,7 @@ export default function CardtelResultPage() {
               exit={{ opacity: 0 }}
               className="text-center py-10 text-yellow-700 text-lg font-semibold"
             >
-              🃏 การ์ดกำลังแปรสภาพเป็นหนังสือ...
+              🃏 {roomData.bookAssigned?.length === 0 ? 'ยังไม่มีหนังสือที่ชี้ดาบจับคู่ให้คุณ...รอแป๊ปน้า' : 'การ์ดกำลังแปรสภาพเป็นหนังสือ...'}
               <div className="text-5xl mt-3 font-bold animate-pulse">{countdown}</div>
               <div className="mt-6 w-full bg-yellow-100 rounded-full h-3 max-w-sm mx-auto overflow-hidden">
                 <div
