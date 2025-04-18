@@ -241,19 +241,20 @@ export default function CardtelAdminPage() {
                   <a
                     href={`/cardtel-live/${room.id}`}
                     target="_blank"
-                    className="block text-xs text-gray-400 hover:underline mt-1"
+                    className="block text-xs text-gray-400 hover:underline m-1"
                   >
                     👁 ดูหน้า public
                   </a>
                 </div>
 
                 {/* ฝั่งขวา */}
-                <div className="flex flex-col items-end mt-4 md:mt-0 md:ml-4 space-y-2 shrink-0">
+                <div className="flex flex-col md:items-end items-start gap-2 mt-4 md:mt-0 md:ml-4 shrink-0">
+
                   {room.hasSubmitted && (
-                    <>
+                    <div className="flex flex-wrap gap-2 items-center">
                       <button
                         onClick={() => openAssignModal(room.id ?? "")}
-                        className="text-sm font-medium px-3 py-2 rounded border border-gray-300 bg-white hover:bg-gray-100"
+                        className="text-sm font-medium px-3 py-1.5 rounded border border-gray-300 bg-white hover:bg-gray-100"
                       >
                         📚 จับคู่กับหนังสือ
                       </button>
@@ -265,20 +266,20 @@ export default function CardtelAdminPage() {
                         }}
                         className="text-sm text-violet-700 hover:underline"
                       >
-                        🔍 ดูผลลัพธ์ที่ Assign ไป
+                        🔍 ดูผลลัพธ์
                       </button>
 
                       <button
                         onClick={() => {
                           const resultUrl = `${window.location.origin}/cardtel-live/${room.id}/result`;
                           navigator.clipboard.writeText(resultUrl);
-                          alert("คัดลอกลิงก์ผลลัพธ์ให้ผู้ใช้เรียบร้อยค้าบ!");
+                          alert("คัดลอกลิงก์ผลลัพธ์เรียบร้อยค้าบ!");
                         }}
                         className="text-sm text-blue-600 hover:underline"
                       >
-                        📎 คัดลอกลิงก์ผลลัพธ์
+                        📎 คัดลอกผลลัพธ์
                       </button>
-                    </>
+                    </div>
                   )}
 
                   <button
@@ -288,11 +289,12 @@ export default function CardtelAdminPage() {
                       }
                       router.push(`/cardtel-live/admin/${room.id}`);
                     }}
-                    className="text-sm font-semibold px-3 py-2 rounded text-blue-600 hover:text-blue-700 cursor-pointer"
+                    className="text-sm font-semibold text-blue-600 hover:text-blue-700"
                   >
-                    View Responses →
+                    ➤ View Responses
                   </button>
                 </div>
+
               </div>
             );
           })}
@@ -399,11 +401,10 @@ export default function CardtelAdminPage() {
                     alert("จับคู่หนังสือเรียบร้อยค้าบ!");
                   }
                 }}
-                className={`px-4 py-2 rounded text-white ${
-                  selectedBooks.length > 0
+                className={`px-4 py-2 rounded text-white ${selectedBooks.length > 0
                     ? "bg-violet-600 hover:bg-violet-700"
                     : "bg-gray-400 cursor-not-allowed"
-                }`}
+                  }`}
               >
                 บันทึก
               </button>
