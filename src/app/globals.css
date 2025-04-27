@@ -135,3 +135,29 @@ body {
 .animate-text-glow {
   animation: text-glow 4s ease-in-out infinite;
 }
+
+@keyframes pop {
+  0% { transform: scale(0.7); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.animate-pop {
+  animation: pop 0.3s ease-out;
+}
+
+.animate-fade-glow {
+  animation: pulse 2s infinite;
+}
+
+.animate-pulse-fast {
+  animation: pulse 1s infinite;
+}
+
+@keyframes floatUp {
+  0% { transform: translateY(0) scale(1); opacity: 1; }
+  100% { transform: translateY(-300px) scale(1.5); opacity: 0; }
+}
+
+.animate-float-up {
+  animation: floatUp 1.5s ease-out forwards;
+}
