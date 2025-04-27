@@ -7,7 +7,7 @@ import CountUp from 'react-countup';
 
 export default function Home() {
   const [subs, setSubs] = useState<number | undefined>(undefined);
-  const [_, setCheers ] = useState<string[]>([]);
+  // const [_, setCheers ] = useState<string[]>([]);
   const [newCheer, setNewCheer] = useState<string>("");
   const showCheerWall = false; // 🔥 toggle ได้ว่าเปิด-ปิด CheerWall
 
@@ -30,13 +30,13 @@ export default function Home() {
   const percentage = subs ? (subs / 100000) * 100 : 0;
   const remaining = subs !== undefined ? Math.max(100000 - subs, 0) : undefined;
 
-  const handleCheerSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (newCheer.trim()) {
-      setCheers(prev => [newCheer.trim(), ...prev]);
-      setNewCheer("");
-    }
-  };
+  // const handleCheerSubmit = (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (newCheer.trim()) {
+  //     setCheers(prev => [newCheer.trim(), ...prev]);
+  //     setNewCheer("");
+  //   }
+  // };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-yellow-500 via-yellow-700 to-black px-4 py-10">
