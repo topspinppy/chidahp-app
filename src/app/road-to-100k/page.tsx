@@ -8,7 +8,7 @@ import CountUp from 'react-countup';
 export default function Home() {
   const [subs, setSubs] = useState<number | undefined>(undefined);
   // const [_, setCheers ] = useState<string[]>([]);
-  const [newCheer, setNewCheer] = useState<string>("");
+  // const [newCheer, setNewCheer] = useState<string>("");
   const showCheerWall = false; // 🔥 toggle ได้ว่าเปิด-ปิด CheerWall
 
   useEffect(() => {
