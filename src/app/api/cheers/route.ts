@@ -7,7 +7,7 @@ const supabase = createClient(
 
 export async function POST(req: Request) {
   const { emoji } = await req.json();
-  const { data, error } = await supabase.from('cheers').insert([{ emoji }]);
+  const { error } = await supabase.from('cheers').insert([{ emoji }]);
   if (error) return Response.json({ error: error.message }, { status: 500 });
   return Response.json({ success: true });
 }
