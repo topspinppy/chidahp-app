@@ -124,7 +124,7 @@ export default function Home() {
         <div className="mt-12 bg-yellow-800/30 backdrop-blur-md p-6 rounded-2xl shadow-2xl w-full max-w-sm">
 
           <h2 className="text-xl md:text-2xl font-bold text-yellow-200 text-center mb-4 animate-pulse-slow">
-            ⚡ ชิงตัวเรียลชี้ดาบ!
+            ⚡ ศึกผลักเรียลชี้ดาบ!
           </h2>
 
 
