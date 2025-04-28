@@ -2,134 +2,57 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { createClient } from "@supabase/supabase-js";
 import CountUp from "react-countup";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import useEmojiCheer from "./hook/useEmojiCheer"; // ✅ Import Hook
 
 export default function Home() {
-  const [subs, setSubs] = useState<number | undefined>(undefined);
-  const [emojiCounts, setEmojiCounts] = useState<{ [emoji: string]: number }>({});
-  const [floatingEmojis, setFloatingEmojis] = useState<{ id: number, emoji: string, x: number, size: number, rotate: number, duration: number }[]>([]);
-  const [teamA, setTeamA] = useState(0);
-  const [teamB, setTeamB] = useState(0);
+  const { 
+    floatingEmojis, 
+    localCounts: emojiCounts, // ✅ ใช้ localCounts จาก Hook 
+    teamA, 
+    teamB, 
+    handleEmojiClick 
+  } = useEmojiCheer();
 
-  const emojiOptions = ["🎯", "🚀", "❤️", "🎈", "🛡️"];
+  const [subs, setSubs] = useState<number | undefined>(undefined);
 
   useEffect(() => {
-    preloadEmojiCounts();
-    fetchSubscribers();
-
-    const subscriberInterval = setInterval(fetchSubscribers, 300000);
-
-    const channel = supabase
-      .channel('cheer-realtime', { config: { broadcast: { self: true } } })
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'cheers' }, (payload) => {
-        const newEmoji = payload.new.emoji;
-
-        setEmojiCounts(prev => ({
-          ...prev,
-          [newEmoji]: (prev[newEmoji] || 0) + 1
-        }));
-
-        if (["🎯", "🚀"].includes(newEmoji)) {
-          setTeamA(prev => prev + 1);
-        } else {
-          setTeamB(prev => prev + 1);
-        }
-
-        setFloatingEmojis(prev => [
-          ...prev,
-          createFloatingEmoji(newEmoji)
-        ]);
-      })
-      .subscribe();
-
-    return () => {
-      clearInterval(subscriberInterval);
-      supabase.removeChannel(channel);
+    const fetchSubscribers = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/subscribers`);
+        const data = await res.json();
+        setSubs(Number(data.subscribers));
+      } catch (error) {
+        console.error('Failed to fetch subscribers:', error);
+      }
     };
+    fetchSubscribers();
+    const interval = setInterval(fetchSubscribers, 300000);
+    return () => clearInterval(interval);
   }, []);
 
-  const fetchSubscribers = async () => {
-    try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/subscribers`);
-      const data = await res.json();
-      setSubs(Number(data.subscribers));
-    } catch (error) {
-      console.error('Failed to fetch subscribers:', error);
-    }
-  };
-
-  const preloadEmojiCounts = async () => {
-    const { data, error } = await supabase.from('cheers').select('emoji');
-    if (error) {
-      console.error('Failed to preload cheers:', error);
-      return;
-    }
-    if (data) {
-      const counts: { [emoji: string]: number } = {};
-      data.forEach((row) => {
-        counts[row.emoji] = (counts[row.emoji] || 0) + 1;
-      });
-      setEmojiCounts(counts);
-
-      let teamAScore = 0;
-      let teamBScore = 0;
-      Object.entries(counts).forEach(([emoji, count]) => {
-        if (["🎯", "🚀"].includes(emoji)) {
-          teamAScore += count;
-        } else {
-          teamBScore += count;
-        }
-      });
-      setTeamA(teamAScore);
-      setTeamB(teamBScore);
-    }
-  };
-
-  const createFloatingEmoji = (emoji: string) => ({
-    id: Date.now() + Math.random(),
-    emoji,
-    x: Math.random() * 90,
-    size: Math.random() * 0.5 + 1,
-    rotate: Math.random() * 360,
-    duration: Math.random() * 1 + 2
-  });
-
-  const handleEmojiClick = async (emoji: string) => {
-    await fetch('/api/cheers', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ emoji })
-    });
-  };
-
+  const emojiOptions = ["🎯", "🚀", "❤️", "🎈", "🛡️"];
+  const percentage = subs ? (subs / 100000) * 100 : 0;
+  const remaining = subs !== undefined ? Math.max(100000 - subs, 0) : undefined;
   const total = teamA + teamB;
   const teamAPercent = total > 0 ? (teamA / total) * 100 : 50;
   const teamBPercent = 100 - teamAPercent;
 
-  const percentage = subs ? (subs / 100000) * 100 : 0;
-  const remaining = subs !== undefined ? Math.max(100000 - subs, 0) : undefined;
-
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-yellow-500 via-yellow-700 to-black px-4 py-10 overflow-hidden">
+    <div className="relative flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-yellow-500 via-yellow-700 to-black px-4 py-10 overflow-hidden">
 
       {/* Floating Emojis */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden z-30">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-30">
         {floatingEmojis.map(e => (
           <div
             key={e.id}
-            className="absolute animate-float-up"
+            className="absolute text-4xl animate-float-up"
             style={{
               left: `${e.x}%`,
-              bottom: '-10%',
+              bottom: '-5%',
               transform: `scale(${e.size}) rotate(${e.rotate}deg)`,
               animationDuration: `${e.duration}s`,
-              fontSize: "2rem"
+              opacity: 0.8
             }}
           >
             {e.emoji}
