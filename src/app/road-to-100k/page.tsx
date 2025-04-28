@@ -6,12 +6,12 @@ import CountUp from "react-countup";
 import useEmojiCheer from "./hook/useEmojiCheer"; // ✅ Import Hook
 
 export default function Home() {
-  const { 
-    floatingEmojis, 
-    localCounts: emojiCounts, // ✅ ใช้ localCounts จาก Hook 
-    teamA, 
-    teamB, 
-    handleEmojiClick 
+  const {
+    floatingEmojis,
+    getTotalCount,   // ✅ ใช้ getTotalCount
+    totalTeamA,
+    totalTeamB,
+    handleEmojiClick
   } = useEmojiCheer();
 
   const [subs, setSubs] = useState<number | undefined>(undefined);
@@ -34,8 +34,8 @@ export default function Home() {
   const emojiOptions = ["🎯", "🚀", "❤️", "🎈", "🛡️"];
   const percentage = subs ? (subs / 100000) * 100 : 0;
   const remaining = subs !== undefined ? Math.max(100000 - subs, 0) : undefined;
-  const total = teamA + teamB;
-  const teamAPercent = total > 0 ? (teamA / total) * 100 : 50;
+  const total = totalTeamA + totalTeamB;
+  const teamAPercent = total > 0 ? (totalTeamA / total) * 100 : 50;
   const teamBPercent = 100 - teamAPercent;
 
   return (
@@ -124,19 +124,46 @@ export default function Home() {
         <div className="mt-12 bg-yellow-800/30 backdrop-blur-md p-6 rounded-2xl shadow-2xl w-full max-w-sm">
 
           <h2 className="text-xl md:text-2xl font-bold text-yellow-200 text-center mb-4 animate-pulse-slow">
-            🎮 Cheer Battle Zone
+            ⚡ ชิงตัวเรียลชี้ดาบ!
           </h2>
 
+
           {/* Battle Bar */}
-          <div className="flex w-full mt-2 h-6 rounded-full overflow-hidden bg-gray-700 relative">
-            <div className="bg-yellow-400" style={{ width: `${teamAPercent}%` }}></div>
-            <div className="bg-pink-400" style={{ width: `${teamBPercent}%` }}></div>
+          <div className="relative w-full mt-2 h-10 rounded-full bg-gray-700 overflow-hidden">
+            {/* พื้นที่ครึ่งซ้าย */}
+            <div
+              className="absolute top-0 left-0 h-full bg-yellow-400 transition-all duration-500 ease-out"
+              style={{ width: `${teamAPercent}%` }}
+            ></div>
+
+            {/* พื้นที่ครึ่งขวา */}
+            <div
+              className="absolute top-0 right-0 h-full bg-pink-400 transition-all duration-500 ease-out"
+              style={{ width: `${teamBPercent}%` }}
+            ></div>
+
+            {/* โลโก้ชี้ดาบ ลอยอยู่ตรงกลาง bar */}
+            <div
+              className="absolute top-1/2 transform -translate-x-1/2 -translate-y-1/2"
+              style={{ left: `${teamAPercent}%`, marginTop: "22px", marginLeft: "22px" }}
+            >
+              <Image
+                src="/logo/real-chidahp-logo.png"
+                alt="Chidahp Logo"
+                width={40}
+                height={40}
+                className="drop-shadow-lg p-1 animate-wiggle"
+              />
+            </div>
           </div>
+
+
+
 
           {/* Team Scores */}
           <div className="flex justify-between w-full text-sm text-white mt-2">
-            <span>🎯🚀 {teamA} คะแนน</span>
-            <span>❤️🎈🛡️ {teamB} คะแนน</span>
+            <span>🎯🚀 {totalTeamA} คะแนน</span>
+            <span>❤️🎈🛡️ {totalTeamB} คะแนน</span>
           </div>
 
           {/* Mini Cheer Zone */}
@@ -149,7 +176,7 @@ export default function Home() {
                 >
                   {emoji}
                 </button>
-                <span className="text-xs mt-1 text-yellow-100">{emojiCounts[emoji] || 0}</span>
+                <span className="text-xs mt-1 text-yellow-100">{getTotalCount(emoji)}</span>
               </div>
             ))}
           </div>
@@ -173,7 +200,7 @@ export default function Home() {
       {/* Footer */}
       <div className="mt-12 mb-4 text-center w-full z-20">
         <p className="text-[10px] md:text-xs text-white/10 italic">
-          Copyright © 2025 นักเรียนชูโล่วิทยาคม. All rights reserved.
+          Copyright © 2025 นักเรียนชูโล่. All rights reserved.
         </p>
       </div>
 

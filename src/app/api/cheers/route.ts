@@ -9,7 +9,7 @@ const supabase = createClient(
 const rateLimitMap = new Map<string, { count: number, lastReset: number }>();
 
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 นาที
-const MAX_REQUESTS_PER_WINDOW = 30; // ขออนุญาตสูงขึ้นนิดหน่อย เช่น 30 ครั้ง/นาที
+const MAX_REQUESTS_PER_WINDOW = 3000; // ขออนุญาตสูงขึ้นนิดหน่อย เช่น 30 ครั้ง/นาที
 
 export async function POST(req: Request) {
   try {

@@ -10,16 +10,21 @@ const supabase = createClient(
 
 const STORAGE_KEY = "cheer-buffer-v1";
 const EMOJIS = ["🎯", "🚀", "❤️", "🎈", "🛡️"];
+const DEBOUNCE_DELAY = 100;
 
 export default function useEmojiCheer() {
-  const [localCounts, setLocalCounts] = useState<Record<string, number>>(() => Object.fromEntries(EMOJIS.map(e => [e, 0])));
-  const [floatingEmojis, setFloatingEmojis] = useState<{ id: number, emoji: string, x: number, size: number, rotate: number, duration: number }[]>([]);
+  const [localCounts, setLocalCounts] = useState<Record<string, number>>(() =>
+    Object.fromEntries(EMOJIS.map(e => [e, 0]))
+  );
+  const [floatingEmojis, setFloatingEmojis] = useState<any[]>([]);
   const [teamA, setTeamA] = useState(0);
   const [teamB, setTeamB] = useState(0);
-  const bufferRef = useRef<string[]>([]);
-  const sendTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // 🚀 ส่ง Buffer ไปยัง API
+  const bufferRef = useRef<string[]>([]);
+  const pendingCountsRef = useRef<Record<string, number>>(Object.fromEntries(EMOJIS.map(e => [e, 0])));
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // 🚀 ยิง Buffer ไป API
   const sendBuffer = async () => {
     if (bufferRef.current.length === 0) return;
     const toSend = [...bufferRef.current];
@@ -33,6 +38,12 @@ export default function useEmojiCheer() {
         body: JSON.stringify({ emojis: toSend }),
       });
       if (!res.ok) throw new Error('Server Error');
+
+      // 🎯 ลบ pendingCounts หลังยิงสำเร็จ
+      toSend.forEach(emoji => {
+        pendingCountsRef.current[emoji] = Math.max((pendingCountsRef.current[emoji] || 0) - 1, 0);
+      });
+
     } catch (e) {
       console.error('Send failed, retry next round', e);
       bufferRef.current = [...toSend, ...bufferRef.current];
@@ -40,38 +51,20 @@ export default function useEmojiCheer() {
     }
   };
 
-  // 🎈 เมื่อ user click emoji
+  // 🎈 ตอน User Click
   const handleEmojiClick = (emoji: string) => {
-    setLocalCounts(prev => ({
-      ...prev,
-      [emoji]: (prev[emoji] || 0) + 1
-    }));
-
-    setFloatingEmojis(prev => [
-      ...prev,
-      {
-        id: Date.now() + Math.random(),
-        emoji,
-        x: Math.random() * 90,
-        size: Math.random() * 0.5 + 1,
-        rotate: Math.random() * 360,
-        duration: Math.random() * 1 + 2
-      }
-    ]);
+    updateLocal(emoji);
 
     bufferRef.current = [...bufferRef.current, emoji];
     localStorage.setItem(STORAGE_KEY, JSON.stringify(bufferRef.current));
 
-    if (bufferRef.current.length >= 10) {
-      sendBuffer();
-    }
+    pendingCountsRef.current[emoji] = (pendingCountsRef.current[emoji] || 0) + 1;
 
-    if (!sendTimerRef.current) {
-      sendTimerRef.current = setInterval(sendBuffer, 30000);
-    }
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    debounceTimerRef.current = setTimeout(sendBuffer, DEBOUNCE_DELAY);
   };
 
-  // 🛡️ Preload Counts (ดึง + บวก buffer)
+  // 🛡️ โหลด counts ตอนแรก
   const preloadCounts = async () => {
     const { data, error } = await supabase
       .from('cheer_counts')
@@ -86,17 +79,9 @@ export default function useEmojiCheer() {
         counts[row.emoji] = row.count;
       });
 
-      // 🔥 รวม Buffer ที่ยังไม่ยิงด้วย เพื่อ smooth
-      bufferRef.current.forEach(emoji => {
-        counts[emoji] = (counts[emoji] || 0) + 1;
-      });
-
       EMOJIS.forEach(emoji => {
-        if (["🎯", "🚀"].includes(emoji)) {
-          scoreA += counts[emoji];
-        } else {
-          scoreB += counts[emoji];
-        }
+        if (["🎯", "🚀"].includes(emoji)) scoreA += counts[emoji];
+        else scoreB += counts[emoji];
       });
 
       setLocalCounts(counts);
@@ -105,9 +90,33 @@ export default function useEmojiCheer() {
     }
   };
 
-  // 🔥 Initial Setup
+  // 🎯 Update Local Score & Floating Emoji
+  const updateLocal = (emoji: string) => {
+    setLocalCounts(prev => ({
+      ...prev,
+      [emoji]: (prev[emoji] || 0) + 1
+    }));
+
+    if (["🎯", "🚀"].includes(emoji)) {
+      setTeamA(prev => prev + 1);
+    } else {
+      setTeamB(prev => prev + 1);
+    }
+
+    setFloatingEmojis(prev => [
+      ...prev,
+      {
+        id: Date.now() + Math.random(),
+        emoji,
+        x: Math.random() * 90,
+        size: Math.random() * 0.5 + 1,
+        rotate: Math.random() * 360,
+        duration: Math.random() * 1 + 2
+      }
+    ]);
+  };
+
   useEffect(() => {
-    // โหลด buffer ตอนแรก
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
@@ -122,8 +131,10 @@ export default function useEmojiCheer() {
 
     const channel = supabase
       .channel('cheer-realtime', { config: { broadcast: { self: true } } })
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'cheers' }, () => {
-        preloadCounts(); // ✨ preload ใหม่ทันที เมื่อมี Insert
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'cheers' }, (payload) => {
+        const emoji = payload.new?.emoji;
+        if (!emoji) return;
+        updateLocal(emoji);
       })
       .subscribe();
 
@@ -132,14 +143,26 @@ export default function useEmojiCheer() {
         navigator.sendBeacon('/api/cheers', JSON.stringify({ emojis: bufferRef.current }));
       }
     };
+
     window.addEventListener('beforeunload', handleUnload);
 
     return () => {
       window.removeEventListener('beforeunload', handleUnload);
-      if (sendTimerRef.current) clearInterval(sendTimerRef.current);
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
       supabase.removeChannel(channel);
     };
   }, []);
 
-  return { floatingEmojis, localCounts, teamA, teamB, handleEmojiClick };
+  // ✨ คำนวณคะแนนรวม (รวม pending)
+  const getTotalCount = (emoji: string) => {
+    return (localCounts[emoji] || 0) + (pendingCountsRef.current[emoji] || 0);
+  };
+
+  const totalTeamA = teamA + EMOJIS.filter(e => ["🎯", "🚀"].includes(e))
+    .reduce((sum, e) => sum + (pendingCountsRef.current[e] || 0), 0);
+
+  const totalTeamB = teamB + EMOJIS.filter(e => ["❤️", "🎈", "🛡️"].includes(e))
+    .reduce((sum, e) => sum + (pendingCountsRef.current[e] || 0), 0);
+
+  return { floatingEmojis, getTotalCount, totalTeamA, totalTeamB, handleEmojiClick };
 }
