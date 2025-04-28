@@ -19,9 +19,7 @@ export default function useEmojiCheer() {
   const bufferRef = useRef<string[]>([]);
   const sendTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // -------------------- //
-  // 🚀 ส่ง buffer ออก API
-  // -------------------- //
+  // 🚀 ส่ง Buffer ไปยัง API
   const sendBuffer = async () => {
     if (bufferRef.current.length === 0) return;
     const toSend = [...bufferRef.current];
@@ -37,23 +35,18 @@ export default function useEmojiCheer() {
       if (!res.ok) throw new Error('Server Error');
     } catch (e) {
       console.error('Send failed, retry next round', e);
-      // ถ้ายิงไม่ติด คืน buffer กลับ
       bufferRef.current = [...toSend, ...bufferRef.current];
       localStorage.setItem(STORAGE_KEY, JSON.stringify(bufferRef.current));
     }
   };
 
-  // -------------------------- //
-  // 🎈 ตอน User Click Emoji
-  // -------------------------- //
+  // 🎈 เมื่อ user click emoji
   const handleEmojiClick = (emoji: string) => {
-    // อัปเดต local UI
     setLocalCounts(prev => ({
       ...prev,
       [emoji]: (prev[emoji] || 0) + 1
     }));
 
-    // ปล่อย Floating Emoji
     setFloatingEmojis(prev => [
       ...prev,
       {
@@ -66,7 +59,6 @@ export default function useEmojiCheer() {
       }
     ]);
 
-    // อัปเดต buffer
     bufferRef.current = [...bufferRef.current, emoji];
     localStorage.setItem(STORAGE_KEY, JSON.stringify(bufferRef.current));
 
@@ -79,9 +71,7 @@ export default function useEmojiCheer() {
     }
   };
 
-  // -------------------- //
-  // 🛡️ โหลดข้อมูล Preload
-  // -------------------- //
+  // 🛡️ Preload Counts (ดึง + บวก buffer)
   const preloadCounts = async () => {
     const { data, error } = await supabase
       .from('cheer_counts')
@@ -94,10 +84,18 @@ export default function useEmojiCheer() {
 
       data.forEach(row => {
         counts[row.emoji] = row.count;
-        if (["🎯", "🚀"].includes(row.emoji)) {
-          scoreA += row.count;
+      });
+
+      // 🔥 รวม Buffer ที่ยังไม่ยิงด้วย เพื่อ smooth
+      bufferRef.current.forEach(emoji => {
+        counts[emoji] = (counts[emoji] || 0) + 1;
+      });
+
+      EMOJIS.forEach(emoji => {
+        if (["🎯", "🚀"].includes(emoji)) {
+          scoreA += counts[emoji];
         } else {
-          scoreB += row.count;
+          scoreB += counts[emoji];
         }
       });
 
@@ -107,11 +105,9 @@ export default function useEmojiCheer() {
     }
   };
 
-  // -------------------- //
-  // 🔥 Initial setup
-  // -------------------- //
+  // 🔥 Initial Setup
   useEffect(() => {
-    // โหลด buffer จาก localStorage
+    // โหลด buffer ตอนแรก
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
@@ -127,8 +123,7 @@ export default function useEmojiCheer() {
     const channel = supabase
       .channel('cheer-realtime', { config: { broadcast: { self: true } } })
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'cheers' }, () => {
-        console.log('update!')
-        preloadCounts(); // reload counts เมื่อมี insert
+        preloadCounts(); // ✨ preload ใหม่ทันที เมื่อมี Insert
       })
       .subscribe();
 
@@ -137,7 +132,6 @@ export default function useEmojiCheer() {
         navigator.sendBeacon('/api/cheers', JSON.stringify({ emojis: bufferRef.current }));
       }
     };
-
     window.addEventListener('beforeunload', handleUnload);
 
     return () => {
