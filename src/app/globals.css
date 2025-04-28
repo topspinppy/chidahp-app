@@ -158,6 +158,20 @@ body {
   100% { transform: translateY(-300px) scale(1.5); opacity: 0; }
 }
 
-.animate-float-up {
+.animate-float-up-1 {
   animation: floatUp 1.5s ease-out forwards;
+}
+
+@keyframes float-up {
+  0% {
+    transform: translateY(0) scale(var(--scale, 1)) rotate(var(--rotate, 0deg));
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-120vh) scale(var(--scale, 1)) rotate(var(--rotate, 0deg));
+    opacity: 0;
+  }
+}
+.animate-float-up {
+  animation: float-up linear forwards;
 }
