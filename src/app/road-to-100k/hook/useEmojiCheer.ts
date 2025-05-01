@@ -68,7 +68,7 @@ export default function useEmojiCheer() {
   // 🛡️ โหลด counts ตอนแรก
   const preloadCounts = async () => {
     const { data, error } = await supabase
-      .from('cheer_counts')
+      .from('cheer_counts_mv')
       .select('emoji, count');
 
     if (data && !error) {
