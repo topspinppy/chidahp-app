@@ -50,8 +50,8 @@ export async function POST(req: Request) {
       return Response.json({ error: 'Emoji list is empty' }, { status: 400 });
     }
 
-    if (emojis.length > 100) {
-      return Response.json({ error: 'Too many emojis in one request (max 100)' }, { status: 400 });
+    if (emojis.length > 1000000000000) {
+      return Response.json({ error: 'Too many emojis in one request (max 1000000000000)' }, { status: 400 });
     }
 
     for (const emoji of emojis) {
