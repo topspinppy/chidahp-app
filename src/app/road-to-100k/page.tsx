@@ -87,7 +87,7 @@ export default function Home() {
         {remaining !== undefined && (
           <div className="mt-6 text-center animate-flash-urgent">
             <p className={`text-2xl md:text-4xl font-bold ${remaining <= 1000 ? 'text-red-400' : 'text-yellow-200'}`}>
-              🚀 เหลืออีก <CountUp end={remaining} duration={2} separator="," /> คน ถึง 100,000!
+              เหลืออีก <CountUp end={remaining} duration={2} separator="," /> คน ถึง 100,000 Subscribers!
             </p>
           </div>
         )}
