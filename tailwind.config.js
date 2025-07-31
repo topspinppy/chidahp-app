@@ -4,7 +4,18 @@ export default {
 
   // ✅ ใช้แบบใหม่ที่ถูกต้อง
   theme: {
-    extend: {},
+    extend: {
+      animation: {
+        'fade-in-up': 'fadeInUp 0.5s ease-out both',
+        'pulse-slow': 'pulse 3s infinite'
+      },
+      keyframes: {
+        fadeInUp: {
+          '0%': { opacity: 0, transform: 'translateY(20px)' },
+          '100%': { opacity: 1, transform: 'translateY(0)' }
+        }
+      }
+    }
   },
 
   // ✅ เปิด dark mode แบบ opt-in
