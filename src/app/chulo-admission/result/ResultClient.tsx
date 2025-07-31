@@ -348,7 +348,7 @@ export default function ResultClient() {
                   *หรือกดเข้าผ่านลิงก์ด้านล่างก็ได้ค้าบโผมม!*
                 </p>
                 <Link
-                  href="https://line.me/ti/g2/XXXXXXXX"
+                  href="https://line.me/ti/g2/V_sxJsPFO6YQ91-f5r5We8iqjdx8FBccSshfVA?utm_source=invitation&utm_medium=link_copy&utm_campaign=default"
                   target="_blank"
                   className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors duration-200 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-full border border-blue-200 hover:border-blue-300"
                 >
