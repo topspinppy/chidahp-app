@@ -3,8 +3,19 @@
 /* Import the font.css from the public directory */
 @import url("/font/font.css");
 
-@theme {
-  --font-primary: "Anakotmai-light";
+body {
+  font-family: var(--font-noto-sans-thai), sans-serif;
+}
+
+@keyframes backgroundFade {
+  0% { background-position: 0% 50% }
+  50% { background-position: 100% 50% }
+  100% { background-position: 0% 50% }
+}
+
+.animate-backgroundFade {
+  background-size: 400% 400%;
+  animation: backgroundFade 15s ease infinite;
 }
 
 @keyframes fadeIn {
@@ -34,4 +45,144 @@
 }
 .animate-gradient {
   animation: gradientBackground 5s ease infinite;
+}
+
+
+.border-violet-500 {
+  border: 2px solid #7c3aed;
+}
+
+@keyframes gradient-x {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+
+.animate-gradient-x {
+  animation: gradient-x 4s linear infinite;
+}
+
+
+@keyframes bounce-slow {
+  0%, 100% {
+    transform: translateY(-50%) translateY(0);
+  }
+  50% {
+    transform: translateY(-50%) translateY(-10px); /* กระเด้งขึ้น 10px */
+  }
+}
+
+.animate-bounce-slow {
+  animation: bounce-slow 2s infinite;
+}
+
+@keyframes drift-right {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(6px); /* เลื่อนไปขวานิดนึง */
+  }
+}
+
+.animate-drift-right {
+  animation: drift-right 2s ease-in-out infinite;
+}
+
+
+@keyframes fade-zoom-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-zoom-in {
+  animation: fade-zoom-in 1s ease-out forwards;
+}
+
+@keyframes pulse-slow {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s infinite;
+}
+
+
+@keyframes flash-urgent {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.animate-flash-urgent {
+  animation: flash-urgent 1s infinite;
+}
+
+@keyframes text-glow {
+  0%, 100% { text-shadow: 0 0 8px #ffd700, 0 0 12px #ff8c00; }
+  50% { text-shadow: 0 0 16px #ffd700, 0 0 24px #ff8c00; }
+}
+
+.animate-text-glow {
+  animation: text-glow 4s ease-in-out infinite;
+}
+
+@keyframes pop {
+  0% { transform: scale(0.7); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.animate-pop {
+  animation: pop 0.3s ease-out;
+}
+
+.animate-fade-glow {
+  animation: pulse 2s infinite;
+}
+
+.animate-pulse-fast {
+  animation: pulse 1s infinite;
+}
+
+@keyframes floatUp {
+  0% { transform: translateY(0) scale(1); opacity: 1; }
+  100% { transform: translateY(-300px) scale(1.5); opacity: 0; }
+}
+
+.animate-float-up-1 {
+  animation: floatUp 1.5s ease-out forwards;
+}
+
+@keyframes float-up {
+  0% {
+    transform: translateY(0) scale(var(--scale, 1)) rotate(var(--rotate, 0deg));
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-120vh) scale(var(--scale, 1)) rotate(var(--rotate, 0deg));
+    opacity: 0;
+  }
+}
+.animate-float-up {
+  animation: float-up linear forwards;
+}
+
+
+@keyframes wiggle {
+  0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
+  25% { transform: translate(-50%, -50%) rotate(5deg); }
+  75% { transform: translate(-50%, -50%) rotate(-5deg); }
+}
+
+.animate-wiggle {
+  animation: wiggle 1s ease-in-out infinite;
 }

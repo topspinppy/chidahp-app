@@ -9,11 +9,19 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@hello-pangea/dnd": "^18.0.1",
+    "@supabase/supabase-js": "^2.49.4",
+    "@types/react-beautiful-dnd": "^13.1.8",
     "axios": "^1.8.4",
+    "firebase": "^11.6.0",
     "framer-motion": "^12.6.3",
-    "next": "15.2.4",
+    "html-to-image": "^1.11.13",
+    "lucide-react": "^0.533.0",
+    "next": "15.2.8",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-countup": "^6.5.3",
+    "react-dom": "^19.0.0",
+    "react-howler": "^5.2.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -21,6 +29,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/react-howler": "^5.2.3",
     "eslint": "^9",
     "eslint-config-next": "15.2.4",
     "tailwindcss": "^4",
